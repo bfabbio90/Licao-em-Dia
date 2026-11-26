@@ -9,7 +9,22 @@ No dia a dia, é o adulto quem:
 - acompanha no calendário o que vence hoje, o que vence na semana e o que está atrasado;
 - marca a lição como feita ou entregue.
 
-A criança não precisa ter conta nem mexer no sistema. Por isso, todos os textos das telas falam com o responsável.
+## Sobre o projeto
+
+O MyHomework é só uma ideia que virou um **MVP** (produto mínimo viável). Ele nasceu para **uso pessoal**, em casa, e **não é um produto comercial**: não há empresa por trás, plano pago nem garantia de suporte.
+
+O código é aberto. Se você é pai ou mãe e também é dev, fique à vontade para usar, adaptar para a sua família e contribuir com melhorias.
+
+### Como contribuir
+
+1. Faça um fork do repositório.
+2. Crie uma branch para a sua mudança (`feat/...`, `fix/...` ou `docs/...`).
+3. Siga o padrão de commits descrito em [Fluxo de trabalho no Git](#fluxo-de-trabalho-no-git).
+4. Abra um pull request explicando o que mudou e como testar.
+
+Ideias para começar estão em [Próximas etapas](#próximas-etapas).
+
+## Visão geral
 
 Cada matéria agrupa suas lições, e cada lição tem título, descrição, data de entrega e um status que acompanha o andamento: pendente, feita ou entregue.
 
@@ -22,6 +37,7 @@ O projeto é dividido em duas partes que conversam por HTTP:
 
 ## Sumário
 
+- [Sobre o projeto](#sobre-o-projeto)
 - [Funcionalidades](#funcionalidades)
 - [Tecnologias](#tecnologias)
 - [Arquitetura](#arquitetura)
