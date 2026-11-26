@@ -1,3 +1,7 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using MyHomework.Api.Services;
 using Microsoft.AspNetCore.Identity;
 using MyHomework.Api.Models;
 using System.Text.Json.Serialization;
@@ -27,15 +31,46 @@ builder.Services
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>();
 
-// 3. Controllers + enums como texto no JSON ("Pendente" em vez de 0)
+// 3. JWT: como a API confere o token de cada requisição
+var jwtKey = builder.Configuration["Jwt:Key"]
+    ?? throw new InvalidOperationException("Configure a chave Jwt:Key no User Secrets.");
+
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.MapInboundClaims = false;
+
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+
+            ValidateAudience = true,
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+
+            ValidateLifetime = true,
+
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+
+            NameClaimType = "name",
+            RoleClaimType = "role"
+        };
+    });
+
+builder.Services.AddAuthorization();
+builder.Services.AddScoped<TokenService>();
+
+// 4. Controllers + enums como texto no JSON ("Pendente" em vez de 0)
 builder.Services.AddControllers()
     .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
-// 4. Swagger, para testar a API no navegador
+// 5. Swagger, para testar a API no navegador
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// 5. CORS: libera o React (o Vite roda na porta 5173)
+// 6. CORS: libera o React (o Vite roda na porta 5173)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("Frontend", policy =>
@@ -46,7 +81,7 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// 6. Cria as roles e o primeiro admin, se ainda não existirem.
+// 7. Cria as roles e o primeiro admin, se ainda não existirem.
 using (var scope = app.Services.CreateScope())
 {
     await SeedData.CriarRolesEAdminAsync(
@@ -55,16 +90,18 @@ using (var scope = app.Services.CreateScope())
     );
 }
 
-// 7. Liga o Swagger só no modo Development
+// 8. Liga o Swagger só no modo Development
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-// 8. Aplica o CORS e conecta os controllers
+// 9. Aplica o CORS, a autenticação e conecta os controllers
 app.UseCors("Frontend");
+app.UseAuthentication(); // lê o token e descobre quem é o usuário
+app.UseAuthorization();  // confere se ele pode acessar a rota
 app.MapControllers();
 
-// 9. Liga a API
+// 10. Liga a API
 app.Run();
