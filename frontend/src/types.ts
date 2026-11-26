@@ -34,3 +34,27 @@ export interface MateriaInput {
   nome: string
   icone: string
 }
+
+// ---------- Autenticação ----------
+
+// O que o front envia para criar uma conta (RegistroDto na API)
+export interface RegistroInput {
+  nome: string
+  email: string
+  senha: string
+  confirmarSenha: string
+}
+
+// O que o front envia para fazer login (LoginDto na API)
+export interface LoginInput {
+  email: string
+  senha: string
+}
+
+// O que a API devolve quando o login dá certo (LoginRespostaDto na API)
+export interface UsuarioLogado {
+  token: string
+  nome: string
+  email: string
+  roles: string[]
+}
