@@ -1,28 +1,20 @@
 # MyHomework
 
-> **O MyHomework é um app feito para pais e mães que querem acompanhar a lição de casa dos filhos. Quem usa é o responsável, não o aluno.**
+> **Um projeto pessoal que criei, como pai, para acompanhar a lição de casa dos meus filhos.**
 
-No dia a dia, é o adulto quem:
+Eu queria um jeito simples de saber quais lições meus filhos têm, para quando são e o que já foi feito. Em vez de procurar um app pronto, resolvi construir o meu. Quem usa sou eu, o responsável, e não as crianças. No dia a dia, eu:
 
-- cria a conta e faz o login;
-- anota cada lição que a criança trouxe da escola, com a matéria e a data de entrega;
-- acompanha no calendário o que vence hoje, o que vence na semana e o que está atrasado;
-- marca a lição como feita ou entregue.
+- anoto cada lição que eles trazem da escola, com a matéria e a data de entrega;
+- vejo no calendário o que vence hoje, o que vence na semana e o que está atrasado;
+- marco a lição como feita ou entregue.
 
 ## Sobre o projeto
 
-O MyHomework é só uma ideia que virou um **MVP** (produto mínimo viável). Ele nasceu para **uso pessoal**, em casa, e **não é um produto comercial**: não há empresa por trás, plano pago nem garantia de suporte.
+O MyHomework é um **projeto pessoal**: um **MVP** (produto mínimo viável) feito para atender a minha rotina em casa. Não é um produto, não é comercial e não foi pensado para ser distribuído ou usado por outras pessoas.
 
-O código é aberto. Se você é pai ou mãe e também é dev, fique à vontade para usar, adaptar para a sua família e contribuir com melhorias.
+O projeto também é a forma que encontrei de estudar e praticar ASP.NET Core, Entity Framework, autenticação com JWT e React, construindo algo que eu mesmo uso.
 
-### Como contribuir
-
-1. Faça um fork do repositório.
-2. Crie uma branch para a sua mudança (`feat/...`, `fix/...` ou `docs/...`).
-3. Siga o padrão de commits descrito em [Fluxo de trabalho no Git](#fluxo-de-trabalho-no-git).
-4. Abra um pull request explicando o que mudou e como testar.
-
-Ideias para começar estão em [Próximas etapas](#próximas-etapas).
+Este repositório guarda o código e a documentação para mim. Não estou buscando contribuições nem novos usuários.
 
 ## Visão geral
 
@@ -582,7 +574,7 @@ Melhorias planejadas, agrupadas por área.
 
 | Melhoria | Por quê |
 |----------|---------|
-| Ligar cada lição a um usuário | hoje todo responsável logado vê e altera as lições de todas as famílias |
+| Ligar cada lição a um usuário | hoje qualquer conta logada vê e altera todas as lições |
 | Traduzir as mensagens de senha do Identity | hoje elas chegam em inglês na tela de cadastro ("Passwords must have at least one digit"); dá para trocar com um `IdentityErrorDescriber` em português |
 | Exigir `Nome` não vazio na matéria (`[Required]`) | hoje a API aceita uma matéria com nome em branco; só o formulário do frontend impede |
 | Validar a matéria também no `PUT` de lições | com um `materiaId` inexistente, a edição devolve erro 500 em vez de 400 |
@@ -613,14 +605,14 @@ Melhorias planejadas, agrupadas por área.
 | Testes do frontend com Vitest | testar componentes e funções como `estaAtrasada`, `diasDaGrade` e `deDataBR` |
 | GitHub Actions | compilar e testar automaticamente a cada pull request |
 | Docker Compose com API, MySQL e frontend | subir o projeto inteiro com um comando |
-| Publicar a aplicação | deixar o projeto acessível fora do computador local |
+| Hospedar a aplicação | poder usar pelo celular fora de casa, e não só no computador |
 
 ### Novas funcionalidades
 
 | Ideia | Descrição |
 |-------|-----------|
-| Lições por família | cada responsável vê só as lições que ele mesmo cadastrou (depende de ligar a lição ao usuário) |
-| Mais de um filho | separar as lições de cada filho dentro da mesma conta |
+| Lições por filho | separar as lições de cada filho e filtrar o calendário por criança |
+| Lições por conta | cada conta vê só as lições que ela mesma cadastrou (depende de ligar a lição ao usuário) |
 | Gerenciar usuários | tela de admin para listar contas e dar ou tirar a role `Admin` |
 | Lembretes | avisar quando uma lição estiver perto do prazo |
 | Anexos | guardar uma foto ou arquivo junto com a lição |
