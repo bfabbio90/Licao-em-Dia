@@ -1,8 +1,17 @@
 # MyHomework
 
-Aplicação para organizar lições de casa por matéria. Cada matéria agrupa suas lições, e cada lição tem título, descrição, data de entrega e um status que acompanha o andamento: pendente, feita ou entregue.
+> **Este App é para papais e mamães. Acompanhe os deveres de casa dos seus filhos.**
 
-**Para quem é:** o MyHomework é feito para **pais e responsáveis**, não para os alunos. Quem cria a conta, anota as lições e acompanha o que já foi feito e entregue é o adulto. A criança não precisa ter conta nem usar o sistema.
+O MyHomework é para os **pais e responsáveis** usarem, **não os alunos**. É o adulto quem:
+
+- cria a conta e faz o login;
+- anota cada lição que a criança trouxe da escola, com a matéria e a data de entrega;
+- acompanha no calendário o que vence hoje, o que vence na semana e o que está atrasado;
+- marca a lição como feita ou entregue.
+
+A criança não precisa ter conta nem mexer no sistema. Por isso, todos os textos das telas falam com o responsável.
+
+Cada matéria agrupa suas lições, e cada lição tem título, descrição, data de entrega e um status que acompanha o andamento: pendente, feita ou entregue.
 
 Para usar a API é preciso ter uma conta. O cadastro e o login são feitos com o ASP.NET Core Identity, e a API identifica quem está chamando por um token JWT. Existem dois perfis: **Usuario**, o responsável que cuida das lições, e **Admin**, que também pode cadastrar, editar e apagar matérias.
 
@@ -30,8 +39,18 @@ O projeto é dividido em duas partes que conversam por HTTP:
 
 ## Funcionalidades
 
+**Calendário (página inicial)**
+
+- saudação com o nome do responsável e um resumo do dia: lições para hoje, nos próximos 7 dias, atrasadas e feitas no mês;
+- grade do mês com as lições de cada dia, na cor da matéria; atrasadas em vermelho e concluídas riscadas;
+- navegação entre os meses e botão "Hoje";
+- painel do dia escolhido, com as lições daquele dia, "Marcar como feita", "Editar" e "+ Adicionar lição neste dia";
+- legenda com a cor de cada matéria;
+- no celular, o painel vai para baixo da grade e cada lição vira uma bolinha colorida.
+
 **Contas**
 
+- telas de login e cadastro com a mensagem "Este App é para papais e mamães. Acompanhe os deveres de casa dos seus filhos.";
 - criar uma conta com nome, e-mail e senha (a pessoa já entra logada depois do cadastro);
 - fazer login e receber um token JWT;
 - continuar logado ao recarregar a página, até o token vencer;
@@ -45,6 +64,7 @@ O projeto é dividido em duas partes que conversam por HTTP:
 - filtrar por status (todas, pendentes, feitas ou entregues);
 - destacar em vermelho as lições pendentes com data de entrega vencida;
 - criar e editar lições pelo mesmo formulário;
+- escolher a data de entrega num calendário em português (dd/mm/aaaa), com atalhos "Hoje", "Amanhã" e "Daqui a 1 semana", ou digitar a data;
 - marcar uma lição como feita com um clique;
 - apagar lições, com confirmação.
 
@@ -81,7 +101,7 @@ Antes de chegar aos controllers, toda requisição passa pelo middleware de aute
 ```mermaid
 flowchart LR
     subgraph Navegador["Navegador (React + TypeScript)"]
-        Telas["Telas<br/>LoginPage, RegistroPage, LicoesPage,<br/>LicaoFormPage, MateriasPage"]
+        Telas["Telas<br/>CalendarioPage, LoginPage, RegistroPage,<br/>LicoesPage, LicaoFormPage, MateriasPage"]
         AuthCtx["AuthProvider<br/>quem está logado"]
         Api["api.ts<br/>uma função por endpoint"]
         Sessao[("localStorage<br/>token e usuário")]
@@ -147,6 +167,8 @@ frontend/
       api.ts                  todas as chamadas à API, já com o token
       sessao.ts               guarda o token no navegador e confere se venceu
     components/
+      Apresentacao.tsx        mensagem para os pais nas telas de login e cadastro
+      CampoData.tsx           campo de data com calendário em português
       LicaoCard.tsx           card de uma lição
       Navbar.tsx              barra de navegação, com o usuário e o botão Sair
       RotaProtegida.tsx       manda para o login quem não está logado
@@ -154,6 +176,7 @@ frontend/
       auth.ts                 contexto do login e o hook useAuth()
       AuthProvider.tsx        guarda quem está logado e faz entrar e sair
     pages/
+      CalendarioPage.tsx      calendário do mês (página inicial)
       LoginPage.tsx           tela de login
       RegistroPage.tsx        tela de cadastro
       LicoesPage.tsx          lista de lições com filtros
@@ -161,7 +184,7 @@ frontend/
       MateriasPage.tsx        lista e cadastro de matérias
     utils/
       cores.ts                cor de cada matéria
-      datas.ts                formatação de datas e regra de atraso
+      datas.ts                datas: formatação, grade do mês, nomes em português e regra de atraso
     types.ts                  formato dos dados da API
     App.tsx                   rotas
     index.css                 estilos
@@ -176,16 +199,19 @@ docs/                         imagens usadas neste README
 |-----------------------|-----------------|---------|--------------------------------------------------------|
 | `/login`              | `LoginPage`     | público | entrar com e-mail e senha                              |
 | `/registrar`          | `RegistroPage`  | público | criar uma conta; ao terminar, já entra logado          |
-| `/`                   | `LicoesPage`    | logado  | lista as lições, com filtros e ações em cada card      |
-| `/licoes/nova`        | `LicaoFormPage` | logado  | formulário vazio para criar uma lição                  |
+| `/`                   | `CalendarioPage`| logado  | página inicial: resumo e calendário do mês             |
+| `/licoes`             | `LicoesPage`    | logado  | lista as lições, com filtros e ações em cada card      |
+| `/licoes/nova`        | `LicaoFormPage` | logado  | formulário vazio para criar uma lição; aceita `?data=2026-11-27` para já vir com o dia preenchido |
 | `/licoes/:id/editar`  | `LicaoFormPage` | logado  | o mesmo formulário, preenchido com a lição escolhida   |
 | `/materias`           | `MateriasPage`  | logado  | lista as matérias; o admin também cadastra e apaga     |
 
-A barra de navegação aparece em todas as telas. Para quem está logado, ela mostra os links, o nome do usuário (com o selo "Admin", se for o caso) e o botão "Sair". Para quem não está, mostra "Entrar" e "Criar conta".
+A barra de navegação aparece em todas as telas. Para quem está logado, ela mostra os links (Calendário, Lições e Matérias), o nome do usuário (com o selo "Admin", se for o caso) e o botão "Sair". Para quem não está, mostra "Entrar" e "Criar conta".
 
 Quem tenta abrir uma rota protegida sem estar logado vai para `/login`. Depois de entrar, a pessoa volta para a página que tinha tentado abrir.
 
-Na lista de lições, o botão "+ Nova lição" e o botão "Editar" de cada card abrem o formulário; ao salvar ou cancelar, o formulário volta para a lista. "Marcar como feita" e "Apagar" agem na própria lista, sem trocar de tela.
+O formulário de lição pode ser aberto pelo calendário ou pela lista. Ao salvar ou cancelar, ele volta para a tela de onde veio. Pelo calendário, "+ Nova lição" e "+ Adicionar lição neste dia" já trazem a data do dia escolhido. "Marcar como feita" e "Apagar" agem na própria tela, sem abrir o formulário.
+
+O campo de data não usa o `<input type="date">` do navegador, porque ele segue o idioma do navegador e, em inglês, mostra `mm/dd/yyyy`. O `CampoData` desenha um calendário próprio, sempre em português, e também aceita a data digitada (as barras entram sozinhas). Datas que não existem, como `31/04`, são recusadas antes de salvar.
 
 ## Modelo de dados
 
@@ -317,7 +343,7 @@ Na tela, uma lição aparece como **atrasada** quando ainda está `Pendente` e a
 
 ## Exemplo de fluxo completo: criar uma lição
 
-O que acontece entre o clique em "Salvar" e a lição aparecer na lista:
+O que acontece entre o clique em "Salvar" e a lição aparecer no calendário ou na lista:
 
 1. O responsável preenche o formulário (`LicaoFormPage`) e clica em Salvar.
 2. A tela chama `criarLicao(dados)`, em `api.ts`.
@@ -326,7 +352,7 @@ O que acontece entre o clique em "Salvar" e a lição aparecer na lista:
 5. O `LicoesController` confere no banco se a matéria informada existe.
 6. Se não existe, a API responde `400` com "Matéria não encontrada.", e a tela mostra essa mensagem em vermelho.
 7. Se existe, a API define o status como `Pendente`, preenche `CriadaEm`, grava a lição no MySQL e responde `200` com a lição criada.
-8. A tela volta para a lista, que busca as lições de novo e já mostra a nova.
+8. A tela volta para onde o formulário foi aberto (o calendário ou a lista), que busca as lições de novo e já mostra a nova.
 
 ## Endpoints da API
 
@@ -491,7 +517,7 @@ Depois suba o servidor de desenvolvimento:
 npm run dev
 ```
 
-O site fica em `http://localhost:5173`, endereço que a API já libera no CORS. Ele abre na tela de login: crie uma conta em "Criar conta" ou entre com o admin configurado no User Secrets.
+O site fica em `http://localhost:5173`, endereço que a API já libera no CORS. Ele abre na tela de login: crie uma conta em "Criar conta" ou entre com o admin configurado no User Secrets. Depois do login, a página inicial é o calendário.
 
 ## Decisões do projeto
 
@@ -513,6 +539,10 @@ O site fica em `http://localhost:5173`, endereço que a API já libera no CORS. 
 | Token guardado no `localStorage` | a pessoa continua logada ao recarregar a página ou abrir outra aba; é a opção mais simples para um projeto de estudo |
 | Login no frontend com Context, sem biblioteca | o `useAuth()` resolve o que as telas precisam, no mesmo estilo do resto do projeto |
 | Depois do cadastro, o login é automático | a pessoa não precisa digitar e-mail e senha duas vezes |
+| Calendário como página inicial | o responsável vê de cara o que vence hoje e na semana, em vez de uma lista longa |
+| Calendário feito à mão, sem biblioteca | a grade do mês são poucas funções em `datas.ts`; mantém o projeto sem dependências extras |
+| Datas convertidas no fuso local (`deISO`) | `new Date("2026-11-27")` é lido em UTC e, no Brasil, cairia no dia anterior |
+| Campo de data próprio em vez de `type="date"` | o campo do navegador segue o idioma dele e pode aparecer em inglês |
 
 ## Fluxo de trabalho no Git
 
@@ -552,11 +582,11 @@ Melhorias planejadas, agrupadas por área.
 
 | Melhoria | Por quê |
 |----------|---------|
-| Layout responsivo para celular | a tela foi pensada para computador |
-| Filtro por matéria na lista de lições | hoje só existe o filtro por status |
+| Layout responsivo nas outras telas | o calendário já se adapta ao celular; a lista, o formulário e as matérias foram pensados para computador |
+| Filtro por matéria na lista e no calendário | hoje só existe o filtro por status, na lista |
+| Visão por semana no calendário | mostrar a semana com mais espaço para cada lição |
 | Editar o nome de uma matéria | a API já tem o endpoint, falta a tela |
-| Botão "Marcar como entregue" no card | hoje só dá para mudar para `Entregue` pelo formulário |
-| Contador de pendentes e atrasadas no topo | visão rápida do que falta fazer |
+| Botão "Marcar como entregue" no card e no painel do dia | hoje só dá para mudar para `Entregue` pelo formulário |
 | Confirmação de exclusão com componente próprio | substituir o `confirm()` do navegador |
 
 ### Qualidade e entrega
@@ -564,7 +594,7 @@ Melhorias planejadas, agrupadas por área.
 | Melhoria | Por quê |
 |----------|---------|
 | Testes da API com xUnit | garantir as regras de negócio e as permissões a cada mudança |
-| Testes do frontend com Vitest | testar componentes e funções como `estaAtrasada` |
+| Testes do frontend com Vitest | testar componentes e funções como `estaAtrasada`, `diasDaGrade` e `deDataBR` |
 | GitHub Actions | compilar e testar automaticamente a cada pull request |
 | Docker Compose com API, MySQL e frontend | subir o projeto inteiro com um comando |
 | Publicar a aplicação | deixar o projeto acessível fora do computador local |
@@ -577,7 +607,6 @@ Melhorias planejadas, agrupadas por área.
 | Mais de um filho | separar as lições de cada filho dentro da mesma conta |
 | Gerenciar usuários | tela de admin para listar contas e dar ou tirar a role `Admin` |
 | Lembretes | avisar quando uma lição estiver perto do prazo |
-| Calendário | ver as entregas organizadas por dia |
 | Anexos | guardar uma foto ou arquivo junto com a lição |
 
 A ordem sugerida é: primeiro ligar as lições aos usuários e as correções da API; em seguida as melhorias de tela, testes e CI; então Docker e publicação; e por último as novas funcionalidades.
