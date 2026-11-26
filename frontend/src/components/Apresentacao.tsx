@@ -3,7 +3,7 @@ export default function Apresentacao() {
   return (
     <div className="apresentacao">
       <span className="marca-simbolo marca-simbolo-grande" aria-hidden="true">
-        M
+        L
       </span>
       <p className="apresentacao-titulo">Este App é para papais e mamães.</p>
       <p className="apresentacao-texto">Acompanhe os deveres de casa dos seus filhos.</p>
