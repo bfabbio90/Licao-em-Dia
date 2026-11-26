@@ -182,9 +182,15 @@ namespace MyHomework.Api.Migrations
                         .HasMaxLength(120)
                         .HasColumnType("varchar(120)");
 
+                    b.Property<string>("UsuarioId")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("MateriaId");
+
+                    b.HasIndex("UsuarioId");
 
                     b.ToTable("Licoes");
                 });
@@ -371,7 +377,15 @@ namespace MyHomework.Api.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("MyHomework.Api.Models.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Materia");
+
+                    b.Navigation("Usuario");
                 });
 
             modelBuilder.Entity("MyHomework.Api.Models.Materia", b =>

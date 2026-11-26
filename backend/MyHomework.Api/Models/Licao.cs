@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace MyHomework.Api.Models;
 
@@ -25,4 +26,15 @@ public class Licao
 
     [JsonIgnore]
     public Materia? Materia { get; set; }
+
+    // Dono da lição: a conta que a criou. Quem preenche é a API, a partir do
+    // token. [JsonIgnore] esconde o campo do JSON (o cliente não envia nem recebe)
+    // e [ValidateNever] evita que a validação exija o campo no POST e no PUT.
+    [JsonIgnore]
+    [ValidateNever]
+    public string UsuarioId { get; set; } = string.Empty;
+
+    [JsonIgnore]
+    [ValidateNever]
+    public Usuario? Usuario { get; set; }
 }

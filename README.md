@@ -14,7 +14,7 @@ O projeto também é a forma que encontrei de estudar e praticar ASP.NET Core, E
 ## Funcionalidades
 
 - **Calendário (página inicial):** resumo do dia (para hoje, próximos 7 dias, atrasadas e feitas no mês), grade do mês com as lições na cor da matéria e painel com as lições do dia escolhido.
-- **Lições:** lista com filtro por status, criação e edição, data de entrega escolhida num calendário em português (dd/mm/aaaa), "Marcar como feita" e exclusão. Lições pendentes com prazo vencido aparecem em vermelho.
+- **Lições:** lista com filtro por status, criação e edição, data de entrega escolhida num calendário em português (dd/mm/aaaa), "Marcar como feita" e exclusão. Lições pendentes com prazo vencido aparecem em vermelho. Cada conta vê e altera somente as próprias lições.
 - **Matérias:** lista com cor própria para cada uma. Só o administrador cadastra, edita e apaga.
 - **Contas:** cadastro, login com token JWT, sessão mantida ao recarregar a página e volta automática para o login quando o token vence.
 
@@ -50,6 +50,7 @@ flowchart LR
 - As telas não fazem requisições direto: tudo passa por `api.ts`, que coloca o token no cabeçalho `Authorization`.
 - Quem está logado fica no `AuthProvider`, e as telas consultam com o hook `useAuth()`.
 - Existem dois perfis: **Usuario** (cuida das lições) e **Admin** (também gerencia as matérias). Toda conta nova é `Usuario`, e o primeiro admin é criado ao subir a API.
+- Cada lição tem um dono (`UsuarioId`): a conta que a criou. A API preenche o dono a partir do token e filtra todas as rotas de lições por ele. As matérias são compartilhadas entre as contas.
 
 ```
 backend/MyHomework.Api/   Controllers, Data, DTOs, Models, Services, Migrations, Program.cs
@@ -73,7 +74,7 @@ Documentação interativa em `http://localhost:5229/swagger`.
 | GET    | `/api/materias` e `/api/materias/{id}` | logado |
 | POST, PUT, DELETE | `/api/materias` e `/api/materias/{id}` | Admin |
 
-Sem token, a API responde `401`. Com token, mas sem a role exigida, responde `403`.
+Sem token, a API responde `401`. Com token, mas sem a role exigida, responde `403`. A lição de outra conta responde `404`, como se não existisse.
 
 ## Como rodar
 
@@ -108,7 +109,6 @@ Abra `http://localhost:5173`, crie uma conta ou entre com o admin configurado.
 
 ## Próximas etapas
 
-- Ligar cada lição a um usuário (hoje qualquer conta logada vê todas as lições).
 - Traduzir para o português as mensagens de senha do Identity.
 - Usar DTOs também em lições e matérias, e validar a matéria no `PUT` de lições.
 - Lembretes de prazo e visão por semana no calendário.

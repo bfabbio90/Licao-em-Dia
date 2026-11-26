@@ -86,6 +86,14 @@ namespace MyHomework.Api.Data
                     .WithMany(m => m.Licoes)
                     .HasForeignKey(l => l.MateriaId)
                     .OnDelete(DeleteBehavior.Restrict);
+
+                // Cada lição pertence a uma conta. Se a conta for apagada,
+                // as lições dela vão junto.
+                e.HasOne(l => l.Usuario)
+                    .WithMany()
+                    .HasForeignKey(l => l.UsuarioId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Cascade);
             });
         }
     }

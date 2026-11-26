@@ -18,11 +18,22 @@ public class LicoesController : ControllerBase
         _context = context;
     }
 
+    // Id da conta que fez a requisição, lido da claim "sub" do token.
+    // A rota exige [Authorize], então o token sempre existe aqui.
+    private string IdDoUsuarioLogado => User.FindFirst("sub")!.Value;
+
+    // Busca uma lição só se ela for da conta logada. A lição de outra conta
+    // devolve null, e a rota responde 404, como se ela não existisse.
+    private Task<Licao?> BuscarDoUsuario(int id) =>
+        _context.Licoes.FirstOrDefaultAsync(l => l.Id == id && l.UsuarioId == IdDoUsuarioLogado);
+
     // GET: api/licoes
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var licoes = await _context.Licoes.ToListAsync();
+        var licoes = await _context.Licoes
+            .Where(l => l.UsuarioId == IdDoUsuarioLogado)
+            .ToListAsync();
         return Ok(licoes);
     }
 
@@ -30,7 +41,7 @@ public class LicoesController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {
-        var licao = await _context.Licoes.FindAsync(id);
+        var licao = await BuscarDoUsuario(id);
         if (licao == null) return NotFound();
 
         return Ok(licao);
@@ -48,6 +59,7 @@ public class LicoesController : ControllerBase
         licao.AtualizadaEm = null;
         licao.Status = StatusLicao.Pendente;
         licao.ConcluidaEm = null;
+        licao.UsuarioId = IdDoUsuarioLogado; // a lição é de quem criou
 
         _context.Licoes.Add(licao);
         await _context.SaveChangesAsync();
@@ -59,7 +71,7 @@ public class LicoesController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, Licao dados)
     {
-        var licao = await _context.Licoes.FindAsync(id);
+        var licao = await BuscarDoUsuario(id);
         if (licao == null) return NotFound();
 
         licao.Titulo = dados.Titulo;
@@ -78,7 +90,7 @@ public class LicoesController : ControllerBase
     [HttpPatch("{id}/concluir")]
     public async Task<IActionResult> Concluir(int id)
     {
-        var licao = await _context.Licoes.FindAsync(id);
+        var licao = await BuscarDoUsuario(id);
         if (licao == null) return NotFound();
 
         licao.Status = StatusLicao.Feita;
@@ -94,7 +106,7 @@ public class LicoesController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var licao = await _context.Licoes.FindAsync(id);
+        var licao = await BuscarDoUsuario(id);
         if (licao == null) return NotFound();
 
         _context.Licoes.Remove(licao);
