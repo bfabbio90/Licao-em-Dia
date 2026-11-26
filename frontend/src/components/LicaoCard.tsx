@@ -32,7 +32,11 @@ export default function LicaoCard({ licao, materia, onConcluir, onApagar }: Lica
         {licao.status === 'Pendente' && (
           <button onClick={() => onConcluir(licao.id)}>Marcar como feita</button>
         )}
-        <Link to={`/licoes/${licao.id}/editar`} className="botao botao-secundario">
+        <Link
+          to={`/licoes/${licao.id}/editar`}
+          state={{ de: '/licoes' }}
+          className="botao botao-secundario"
+        >
           Editar
         </Link>
         <button className="botao-perigo" onClick={() => onApagar(licao.id)}>
