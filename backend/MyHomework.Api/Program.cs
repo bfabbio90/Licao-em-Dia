@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Identity;
+using MyHomework.Api.Models;
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using MyHomework.Api.Data;
@@ -8,15 +10,32 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySQL(builder.Configuration.GetConnectionString("Default")!));
 
-// 2. Controllers + enums como texto no JSON ("Pendente" em vez de 0)
+// 2. Identity: usuários, senhas e roles
+builder.Services
+    .AddIdentityCore<Usuario>(options =>
+    {
+        // Exige que o e-mail seja único
+        options.User.RequireUniqueEmail = true;
+
+        // Configurações de senha
+        options.Password.RequiredLength = 6;
+        options.Password.RequireDigit = true;
+        options.Password.RequireLowercase = true;
+        options.Password.RequireUppercase = false;
+        options.Password.RequireNonAlphanumeric = false;
+    })
+    .AddRoles<IdentityRole>()
+    .AddEntityFrameworkStores<AppDbContext>();
+
+// 3. Controllers + enums como texto no JSON ("Pendente" em vez de 0)
 builder.Services.AddControllers()
     .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
-// 3. Swagger, para testar a API no navegador
+// 4. Swagger, para testar a API no navegador
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// 4. CORS: libera o React (o Vite roda na porta 5173)
+// 5. CORS: libera o React (o Vite roda na porta 5173)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("Frontend", policy =>
@@ -27,16 +46,16 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// 5. Liga o Swagger só no modo Development
+// 6. Liga o Swagger só no modo Development
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-// 6. Aplica o CORS e conecta os controllers
+// 7. Aplica o CORS e conecta os controllers
 app.UseCors("Frontend");
 app.MapControllers();
 
-// 7. Liga a API
+// 8. Liga a API
 app.Run();
