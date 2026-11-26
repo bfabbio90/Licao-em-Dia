@@ -134,51 +134,34 @@ docs/                         imagens usadas neste README
 | `/licoes/:id/editar`  | `LicaoFormPage` | o mesmo formulário, preenchido com a lição escolhida   |
 | `/materias`           | `MateriasPage`  | lista as matérias e permite cadastrar e apagar         |
 
-A barra de navegação aparece em todas as telas. O caminho entre elas:
-
-```mermaid
-flowchart TD
-    Navbar["Barra de navegação"] --> Licoes["Lista de lições<br/>/"]
-    Navbar --> Materias["Matérias<br/>/materias"]
-
-    Licoes -- "+ Nova lição" --> Nova["Formulário<br/>/licoes/nova"]
-    Licoes -- "Editar" --> Editar["Formulário<br/>/licoes/:id/editar"]
-    Licoes -- "Marcar como feita" --> Licoes
-    Licoes -- "Apagar" --> Licoes
-
-    Nova -- "Salvar ou Cancelar" --> Licoes
-    Editar -- "Salvar ou Cancelar" --> Licoes
-
-    Materias -- "Adicionar ou Apagar" --> Materias
-```
+A barra de navegação aparece em todas as telas. Na lista de lições, o botão "+ Nova lição" e o botão "Editar" de cada card abrem o formulário; ao salvar ou cancelar, o formulário volta para a lista. "Marcar como feita" e "Apagar" agem na própria lista, sem trocar de tela.
 
 ## Modelo de dados
 
-Uma matéria tem várias lições, e cada lição pertence a uma única matéria.
+Uma matéria tem várias lições, e cada lição pertence a uma única matéria, ligada pelo campo `MateriaId`.
 
-```mermaid
-erDiagram
-    MATERIA ||--o{ LICAO : "tem"
+**Materia**
 
-    MATERIA {
-        int Id PK
-        string Nome "até 60 caracteres"
-        string Icone "até 10 caracteres"
-        datetime CriadaEm
-    }
+| Campo    | Tipo     | Observação                     |
+|----------|----------|--------------------------------|
+| Id       | int      | chave primária                 |
+| Nome     | string   | obrigatório, até 60 caracteres |
+| Icone    | string   | opcional, até 10 caracteres    |
+| CriadaEm | DateTime | preenchido pela API            |
 
-    LICAO {
-        int Id PK
-        string Titulo "até 120 caracteres"
-        string Descricao "opcional, até 500"
-        datetime DataEntrega
-        string Status "Pendente, Feita ou Entregue"
-        datetime ConcluidaEm "opcional"
-        datetime CriadaEm
-        datetime AtualizadaEm "opcional"
-        int MateriaId FK
-    }
-```
+**Licao**
+
+| Campo        | Tipo      | Observação                         |
+|--------------|-----------|------------------------------------|
+| Id           | int       | chave primária                     |
+| Titulo       | string    | obrigatório, até 120 caracteres    |
+| Descricao    | string    | opcional, até 500 caracteres       |
+| DataEntrega  | DateTime  |                                    |
+| Status       | enum      | `Pendente`, `Feita` ou `Entregue`  |
+| ConcluidaEm  | DateTime? | preenchido ao concluir a lição     |
+| CriadaEm     | DateTime  | preenchido pela API                |
+| AtualizadaEm | DateTime? | preenchido pela API a cada edição  |
+| MateriaId    | int       | chave estrangeira para `Materia`   |
 
 Regras que valem para os dados:
 
@@ -188,21 +171,12 @@ Regras que valem para os dados:
 
 ## Ciclo de vida de uma lição
 
-Toda lição nasce como `Pendente`. O botão "Marcar como feita" usa o endpoint `PATCH /concluir`, que muda o status e registra a data de conclusão. No formulário de edição, o status pode ser trocado livremente.
-
-```mermaid
-stateDiagram-v2
-    [*] --> Pendente: criar (POST)
-    Pendente --> Feita: marcar como feita (PATCH)
-    Pendente --> Feita: editar (PUT)
-    Feita --> Entregue: editar (PUT)
-    Pendente --> Entregue: editar (PUT)
-    Entregue --> Pendente: editar (PUT)
-    Feita --> Pendente: editar (PUT)
-    Pendente --> [*]: apagar (DELETE)
-    Feita --> [*]: apagar (DELETE)
-    Entregue --> [*]: apagar (DELETE)
-```
+| Ação                         | Endpoint                 | Efeito no status                         |
+|------------------------------|--------------------------|------------------------------------------|
+| Criar                        | `POST /api/licoes`       | sempre começa como `Pendente`            |
+| Marcar como feita            | `PATCH .../concluir`     | vira `Feita` e registra `ConcluidaEm`    |
+| Editar no formulário         | `PUT /api/licoes/{id}`   | pode ir para qualquer um dos três        |
+| Apagar                       | `DELETE /api/licoes/{id}`| a lição deixa de existir                 |
 
 Na tela, uma lição aparece como **atrasada** quando ainda está `Pendente` e a data de entrega já passou.
 
@@ -210,30 +184,13 @@ Na tela, uma lição aparece como **atrasada** quando ainda está `Pendente` e a
 
 O que acontece entre o clique em "Salvar" e a lição aparecer na lista:
 
-```mermaid
-sequenceDiagram
-    actor Aluno
-    participant Form as LicaoFormPage
-    participant Api as api.ts
-    participant Ctrl as LicoesController
-    participant Db as MySQL
-
-    Aluno->>Form: preenche e clica em Salvar
-    Form->>Api: criarLicao(dados)
-    Api->>Ctrl: POST /api/licoes (JSON)
-    Ctrl->>Db: a matéria existe?
-    alt matéria não existe
-        Ctrl-->>Api: 400 "Matéria não encontrada."
-        Api-->>Form: erro com a mensagem
-        Form-->>Aluno: mostra o erro em vermelho
-    else matéria existe
-        Ctrl->>Ctrl: define Status = Pendente e CriadaEm = agora
-        Ctrl->>Db: INSERT da lição
-        Ctrl-->>Api: 200 com a lição criada
-        Api-->>Form: lição criada
-        Form-->>Aluno: volta para a lista de lições
-    end
-```
+1. O aluno preenche o formulário (`LicaoFormPage`) e clica em Salvar.
+2. A tela chama `criarLicao(dados)`, em `api.ts`.
+3. O `api.ts` envia um `POST /api/licoes` com os dados em JSON.
+4. O `LicoesController` confere no banco se a matéria informada existe.
+5. Se não existe, a API responde `400` com "Matéria não encontrada.", e a tela mostra essa mensagem em vermelho.
+6. Se existe, a API define o status como `Pendente`, preenche `CriadaEm`, grava a lição no MySQL e responde `200` com a lição criada.
+7. A tela volta para a lista, que busca as lições de novo e já mostra a nova.
 
 ## Endpoints da API
 
@@ -281,17 +238,6 @@ Ao criar uma lição, a API ignora o que vier em `status`, `criadaEm`, `atualiza
 - MySQL rodando localmente, na porta 3306
 - Ferramenta do Entity Framework: `dotnet tool install -g dotnet-ef`
 - [Node.js](https://nodejs.org/) 20.19 ou 22.12 em diante
-
-### Visão geral
-
-```mermaid
-flowchart LR
-    A["Guardar a connection string<br/>no User Secrets"] --> B["dotnet ef database update"]
-    B --> C["dotnet run<br/>API em :5229"]
-    C --> D["npm install"]
-    D --> E["Criar .env.local"]
-    E --> F["npm run dev<br/>site em :5173"]
-```
 
 ### Backend
 
@@ -371,30 +317,6 @@ Cada parte do projeto foi feita numa branch própria e entrou no `main` por pull
 | `build`    | dependências                         | `build(deps): add react-router`                            |
 | `chore`    | configuração e manutenção            | `chore(frontend): scaffold React app with Vite`            |
 
-```mermaid
-gitGraph
-    commit id: "setup inicial"
-    branch feat/materia-licao-models
-    commit id: "models"
-    checkout main
-    merge feat/materia-licao-models
-    branch feat/database-setup
-    commit id: "AppDbContext"
-    commit id: "conexão MySQL"
-    checkout main
-    merge feat/database-setup
-    branch feat/licoes-controller
-    commit id: "LicoesController"
-    checkout main
-    merge feat/licoes-controller
-    branch feat/react-router
-    commit id: "rotas e telas"
-    checkout main
-    merge feat/react-router
-```
-
-O gráfico mostra só algumas das branches, como exemplo do fluxo.
-
 ## Próximas etapas
 
 Melhorias planejadas, agrupadas por área.
@@ -441,10 +363,4 @@ Melhorias planejadas, agrupadas por área.
 | Calendário | ver as entregas organizadas por dia |
 | Anexos | guardar uma foto ou arquivo junto com a lição |
 
-```mermaid
-flowchart LR
-    F1["Fase 1<br/>Correções na API<br/>validações e DTOs"] --> F2["Fase 2<br/>Melhorias de tela<br/>responsivo e filtros"]
-    F2 --> F3["Fase 3<br/>Testes e CI<br/>xUnit, Vitest, Actions"]
-    F3 --> F4["Fase 4<br/>Entrega<br/>Docker e publicação"]
-    F4 --> F5["Fase 5<br/>Novas funções<br/>login e lembretes"]
-```
+A ordem sugerida é: primeiro as correções da API, depois as melhorias de tela, em seguida testes e CI, então Docker e publicação, e por último as novas funcionalidades.
