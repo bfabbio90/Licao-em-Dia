@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router'
 import { mensagemDeErro } from '../api/api'
+import Apresentacao from '../components/Apresentacao'
 import { useAuth } from '../contexts/auth'
 
 export default function LoginPage() {
@@ -38,6 +39,7 @@ export default function LoginPage() {
 
   return (
     <section className="pagina-auth">
+      <Apresentacao />
       <h1>Entrar</h1>
 
       {sessaoExpirou && !erro && <p className="aviso">Sua sessão expirou. Entre de novo.</p>}

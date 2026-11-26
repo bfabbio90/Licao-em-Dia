@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router'
 import { mensagemDeErro, registrar } from '../api/api'
+import Apresentacao from '../components/Apresentacao'
 import { useAuth } from '../contexts/auth'
 
 export default function RegistroPage() {
@@ -44,6 +45,7 @@ export default function RegistroPage() {
 
   return (
     <section className="pagina-auth">
+      <Apresentacao />
       <h1>Criar conta</h1>
 
       {erro && <p className="erro">{erro}</p>}
