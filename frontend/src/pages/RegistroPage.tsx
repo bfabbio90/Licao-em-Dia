@@ -6,7 +6,7 @@ import Apresentacao from '../components/Apresentacao'
 import { useAuth } from '../contexts/auth'
 
 export default function RegistroPage() {
-  const { usuario, entrar } = useAuth()
+  const { usuario } = useAuth()
   const navigate = useNavigate()
 
   const [nome, setNome] = useState('')
@@ -33,9 +33,8 @@ export default function RegistroPage() {
     setEnviando(true)
     try {
       await registrar({ nome, email, senha, confirmarSenha })
-      // Conta criada: já faz o login, para a pessoa não digitar tudo de novo
-      await entrar({ email, senha })
-      navigate('/', { replace: true })
+      // Conta criada: vai para o login, que mostra o aviso e já traz o e-mail
+      navigate('/login', { replace: true, state: { contaCriada: true, email } })
     } catch (e) {
       // Ex.: "Este e-mail já está cadastrado." ou as regras de senha do Identity
       setErro(mensagemDeErro(e))
