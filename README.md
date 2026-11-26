@@ -1,10 +1,10 @@
 # MyHomework
 
-> **Um projeto pessoal que criei, como pai, para acompanhar a lição de casa dos meus filhos.**
+> **Um projeto pessoal para acompanhar lições de casa, usado somente pelo responsável.**
 
-Eu queria um jeito simples de saber quais lições meus filhos têm, para quando são e o que já foi feito. Em vez de procurar um app pronto, resolvi construir o meu. Quem usa sou eu, o responsável, e não as crianças. No dia a dia, eu:
+Criei o MyHomework para atender uma necessidade minha: ter um jeito simples de saber quais lições existem, para quando são e o que já foi feito. Em vez de procurar um app pronto, resolvi construir o meu. O sistema é usado somente pelo responsável. No dia a dia, eu:
 
-- anoto cada lição que eles trazem da escola, com a matéria e a data de entrega;
+- anoto cada lição, com a matéria e a data de entrega;
 - vejo no calendário o que vence hoje, o que vence na semana e o que está atrasado;
 - marco a lição como feita ou entregue.
 
@@ -58,7 +58,7 @@ O projeto é dividido em duas partes que conversam por HTTP:
 
 **Contas**
 
-- telas de login e cadastro com a mensagem "Este App é para papais e mamães. Acompanhe os deveres de casa dos seus filhos.";
+- telas de login e cadastro com uma mensagem de apresentação do app;
 - criar uma conta com nome, e-mail e senha (a pessoa já entra logada depois do cadastro);
 - fazer login e receber um token JWT;
 - continuar logado ao recarregar a página, até o token vencer;
@@ -611,10 +611,8 @@ Melhorias planejadas, agrupadas por área.
 
 | Ideia | Descrição |
 |-------|-----------|
-| Lições por filho | separar as lições de cada filho e filtrar o calendário por criança |
 | Lições por conta | cada conta vê só as lições que ela mesma cadastrou (depende de ligar a lição ao usuário) |
 | Gerenciar usuários | tela de admin para listar contas e dar ou tirar a role `Admin` |
 | Lembretes | avisar quando uma lição estiver perto do prazo |
-| Anexos | guardar uma foto ou arquivo junto com a lição |
 
 A ordem sugerida é: primeiro ligar as lições aos usuários e as correções da API; em seguida as melhorias de tela, testes e CI; então Docker e publicação; e por último as novas funcionalidades.
