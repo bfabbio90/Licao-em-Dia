@@ -46,16 +46,25 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// 6. Liga o Swagger só no modo Development
+// 6. Cria as roles e o primeiro admin, se ainda não existirem.
+using (var scope = app.Services.CreateScope())
+{
+    await SeedData.CriarRolesEAdminAsync(
+        scope.ServiceProvider,
+        app.Configuration
+    );
+}
+
+// 7. Liga o Swagger só no modo Development
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-// 7. Aplica o CORS e conecta os controllers
+// 8. Aplica o CORS e conecta os controllers
 app.UseCors("Frontend");
 app.MapControllers();
 
-// 8. Liga a API
+// 9. Liga a API
 app.Run();
