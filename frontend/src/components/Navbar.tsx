@@ -15,10 +15,8 @@ export default function Navbar() {
     <header className="navbar">
       <div className="navbar-conteudo">
         <Link to="/" className="marca">
-          <span className="marca-simbolo" aria-hidden="true">
-            M
-          </span>
-          MyHomework
+          <img className="marca-simbolo" src="/logo-icone.png" alt="" aria-hidden="true" />
+          Lição Em Dia
         </Link>
 
         {usuario ? (
