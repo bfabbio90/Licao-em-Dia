@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { apagarMateria, criarMateria, listarMaterias, mensagemDeErro } from '../api/api'
+import { useAuth } from '../contexts/auth'
 import type { Materia } from '../types'
 import { corDaMateria } from '../utils/cores'
 
 export default function MateriasPage() {
+  // Só o Admin pode criar e apagar matérias (a API também confere)
+  const { ehAdmin } = useAuth()
   const [materias, setMaterias] = useState<Materia[]>([])
   const [nome, setNome] = useState('')
   const [icone, setIcone] = useState('')
@@ -52,31 +55,37 @@ export default function MateriasPage() {
 
       {erro && <p className="erro">{erro}</p>}
 
-      <form className="formulario em-linha" onSubmit={handleCriar}>
-        <input
-          placeholder="Nome da matéria"
-          value={nome}
-          onChange={(e) => setNome(e.target.value)}
-          maxLength={60}
-          required
-        />
-        <input
-          className="campo-icone"
-          title="Ícone (opcional)"
-          value={icone}
-          onChange={(e) => setIcone(e.target.value)}
-          maxLength={10}
-        />
-        <button type="submit">Adicionar</button>
-      </form>
+      {ehAdmin ? (
+        <form className="formulario em-linha" onSubmit={handleCriar}>
+          <input
+            placeholder="Nome da matéria"
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
+            maxLength={60}
+            required
+          />
+          <input
+            className="campo-icone"
+            title="Ícone (opcional)"
+            value={icone}
+            onChange={(e) => setIcone(e.target.value)}
+            maxLength={10}
+          />
+          <button type="submit">Adicionar</button>
+        </form>
+      ) : (
+        <p className="dica">Só administradores podem cadastrar ou apagar matérias.</p>
+      )}
 
       <ul className="lista-materias">
         {materias.map((m) => (
           <li key={m.id} style={{ borderLeftColor: corDaMateria(m.id) }}>
             <span>{`${m.icone} ${m.nome}`.trim()}</span>
-            <button className="botao-perigo" onClick={() => handleApagar(m.id)}>
-              Apagar
-            </button>
+            {ehAdmin && (
+              <button className="botao-perigo" onClick={() => handleApagar(m.id)}>
+                Apagar
+              </button>
+            )}
           </li>
         ))}
       </ul>
