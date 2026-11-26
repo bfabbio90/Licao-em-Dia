@@ -282,6 +282,112 @@ select {
   text-align: center;
 }
 
+/* ---------- Campo de data com calendário ---------- */
+
+.campo-data {
+  position: relative;
+}
+
+.campo-data input {
+  width: 100%;
+  padding-right: 44px;
+}
+
+.campo-data-botao {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  transform: translateY(-50%);
+  padding: 4px 8px;
+  background: transparent;
+  font-size: 1.1rem;
+}
+
+.campo-data-botao:hover {
+  background: var(--fundo);
+}
+
+.seletor-data {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 20;
+  width: 300px;
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  background: var(--card);
+  border: 1px solid var(--borda);
+  border-radius: 14px;
+  box-shadow: 0 12px 32px rgb(15 23 42 / 0.14);
+  font-weight: 400; /* não herda o negrito do label do formulário */
+}
+
+.seletor-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.seletor-topo strong {
+  font-size: 0.95rem;
+}
+
+.seletor-semana,
+.seletor-grade {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.seletor-semana span {
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--texto-suave);
+}
+
+.seletor-dia {
+  height: 36px;
+  padding: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--texto);
+  font-weight: 500;
+}
+
+.seletor-dia:hover {
+  background: var(--fundo);
+}
+
+.seletor-dia.fora-do-mes {
+  opacity: 0.4;
+}
+
+.seletor-dia.hoje {
+  color: var(--primaria);
+  font-weight: 700;
+  box-shadow: inset 0 0 0 1px var(--primaria);
+}
+
+.seletor-dia.selecionado {
+  background: var(--primaria);
+  color: white;
+}
+
+.seletor-atalhos {
+  display: flex;
+  gap: 6px;
+  padding-top: 8px;
+  border-top: 1px solid var(--borda);
+}
+
+.seletor-atalhos button {
+  flex: 1;
+  padding: 6px 4px;
+  font-size: 0.78rem;
+}
+
 /* ---------- Lista de matérias ---------- */
 
 .lista-materias {
@@ -300,6 +406,381 @@ select {
   border-left: 6px solid var(--primaria);
   border-radius: 10px;
   padding: 10px 16px;
+}
+
+/* ---------- Calendário (página inicial) ---------- */
+
+/* O calendário precisa de mais largura que as outras telas */
+.conteudo:has(.pagina-calendario) {
+  max-width: 1160px;
+}
+
+.pagina-calendario {
+  display: grid;
+  gap: 20px;
+}
+
+.pagina-calendario .cabecalho {
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.saudacao h1 {
+  font-size: 1.8rem;
+  margin-bottom: 4px;
+}
+
+.saudacao p {
+  margin: 0;
+  color: var(--texto-suave);
+}
+
+/* Números do resumo */
+
+.resumo {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.resumo-item {
+  display: grid;
+  gap: 2px;
+  background: var(--card);
+  border: 1px solid var(--borda);
+  border-radius: 14px;
+  padding: 14px 16px;
+}
+
+.resumo-item strong {
+  font-size: 1.7rem;
+  line-height: 1.1;
+  color: var(--primaria);
+}
+
+.resumo-item span {
+  color: var(--texto-suave);
+  font-size: 0.85rem;
+}
+
+.resumo-item.alerta {
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.resumo-item.alerta strong {
+  color: var(--perigo);
+}
+
+.resumo-item.sucesso strong {
+  color: var(--sucesso);
+}
+
+/* Grade do mês + painel do dia */
+
+.calendario-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 20px;
+  align-items: start;
+}
+
+.calendario,
+.painel-dia {
+  background: var(--card);
+  border: 1px solid var(--borda);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgb(15 23 42 / 0.04), 0 8px 24px rgb(15 23 42 / 0.04);
+}
+
+.calendario-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.calendario-topo h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.navegacao-mes {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.botao-icone {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 50%;
+  background: var(--fundo);
+  color: var(--texto);
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.botao-icone:hover {
+  background: var(--borda);
+}
+
+.semana,
+.grade {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.semana {
+  margin-bottom: 6px;
+}
+
+.semana span {
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--texto-suave);
+}
+
+/* Cada dia é um botão: desfaz o estilo padrão dos botões */
+.dia {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  min-height: 104px;
+  padding: 6px;
+  border: 1px solid var(--borda);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--texto);
+  font-weight: 400;
+  text-align: left;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+}
+
+.dia:hover {
+  border-color: #c7d2fe;
+  background: #fafaff;
+}
+
+.dia:focus-visible {
+  outline: 2px solid var(--primaria);
+  outline-offset: 2px;
+}
+
+.dia.fora-do-mes {
+  background: transparent;
+  opacity: 0.45;
+}
+
+.dia.selecionado {
+  border-color: var(--primaria);
+  box-shadow: inset 0 0 0 1px var(--primaria);
+}
+
+.dia-numero {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.dia.hoje .dia-numero {
+  background: var(--primaria);
+  color: white;
+}
+
+.dia-licoes {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+/* Lição dentro do dia, na cor da matéria (--cor) */
+.chip {
+  display: block;
+  padding: 2px 6px;
+  border-left: 3px solid var(--cor);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--cor) 14%, white);
+  color: color-mix(in srgb, var(--cor) 65%, black);
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chip.concluida {
+  opacity: 0.55;
+  text-decoration: line-through;
+}
+
+.chip.atrasada {
+  border-left-color: var(--perigo);
+  background: #fee2e2;
+  color: var(--perigo);
+}
+
+.chip-mais {
+  padding-left: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--texto-suave);
+}
+
+/* Legenda das matérias */
+
+.legenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  font-size: 0.85rem;
+  color: var(--texto-suave);
+}
+
+.legenda li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legenda-cor {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--cor);
+}
+
+/* Painel do dia selecionado */
+
+.painel-dia {
+  position: sticky;
+  top: 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.painel-dia h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.painel-rotulo {
+  margin: 0 0 -8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--primaria);
+}
+
+.painel-vazio {
+  margin: 0;
+  padding: 20px 0;
+  text-align: center;
+  color: var(--texto-suave);
+}
+
+.painel-lista {
+  display: grid;
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.painel-lista li {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  border: 1px solid var(--borda);
+  border-left: 4px solid var(--cor);
+  border-radius: 12px;
+}
+
+.painel-lista .descricao,
+.painel-lista .data {
+  margin: 0;
+}
+
+.painel-titulo {
+  font-size: 0.95rem;
+}
+
+.botao-adicionar {
+  text-align: center;
+}
+
+/* Telas menores: painel embaixo da grade */
+@media (max-width: 900px) {
+  .calendario-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .painel-dia {
+    position: static;
+  }
+}
+
+@media (max-width: 640px) {
+  .resumo {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .calendario {
+    padding: 12px;
+  }
+
+  .semana,
+  .grade {
+    gap: 3px;
+  }
+
+  .dia {
+    min-height: 54px;
+    align-items: center;
+    padding: 4px 2px;
+  }
+
+  /* No celular, cada lição vira uma bolinha colorida */
+  .dia-licoes {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .chip {
+    width: 7px;
+    height: 7px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: var(--cor);
+    font-size: 0;
+  }
+
+  .chip.atrasada {
+    background: var(--perigo);
+  }
+
+  .chip-mais {
+    display: none;
+  }
 }
 
 /* ---------- Mensagens ---------- */

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
-import { useNavigate, useParams } from 'react-router'
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
 import { buscarLicao, criarLicao, editarLicao, listarMaterias, mensagemDeErro } from '../api/api'
+import CampoData from '../components/CampoData'
 import type { LicaoInput, Materia, StatusLicao } from '../types'
 import { hojeISO } from '../utils/datas'
 
@@ -9,11 +10,22 @@ export default function LicaoFormPage() {
   const { id } = useParams() // só existe na rota de edição
   const editando = id !== undefined
   const navigate = useNavigate()
+  const location = useLocation()
+  const [parametros] = useSearchParams()
+
+  // Para onde voltar ao salvar ou cancelar: a tela que abriu o formulário
+  // (o calendário ou a lista de lições). Sem essa informação, vai para o início.
+  const voltarPara = (location.state as { de?: string } | null)?.de ?? '/'
+
+  // Vindo de um dia do calendário, o endereço traz ?data=2026-11-27
+  const dataInicial = parametros.get('data')
 
   const [materias, setMaterias] = useState<Materia[]>([])
   const [titulo, setTitulo] = useState('')
   const [descricao, setDescricao] = useState('')
-  const [dataEntrega, setDataEntrega] = useState(hojeISO())
+  const [dataEntrega, setDataEntrega] = useState(
+    dataInicial && /^\d{4}-\d{2}-\d{2}$/.test(dataInicial) ? dataInicial : hojeISO(),
+  )
   const [materiaId, setMateriaId] = useState(0)
   const [status, setStatus] = useState<StatusLicao>('Pendente')
   const [erro, setErro] = useState('')
@@ -63,7 +75,7 @@ export default function LicaoFormPage() {
       } else {
         await criarLicao(dados)
       }
-      navigate('/') // volta para a lista
+      navigate(voltarPara) // volta para a tela de onde veio
     } catch (e) {
       setErro(mensagemDeErro(e))
       setSalvando(false)
@@ -94,12 +106,7 @@ export default function LicaoFormPage() {
 
         <label>
           Data de entrega
-          <input
-            type="date"
-            value={dataEntrega}
-            onChange={(e) => setDataEntrega(e.target.value)}
-            required
-          />
+          <CampoData valor={dataEntrega} onChange={setDataEntrega} required />
         </label>
 
         <label>
@@ -128,7 +135,7 @@ export default function LicaoFormPage() {
           <button type="submit" disabled={salvando}>
             {salvando ? 'Salvando...' : 'Salvar'}
           </button>
-          <button type="button" className="botao-secundario" onClick={() => navigate('/')}>
+          <button type="button" className="botao-secundario" onClick={() => navigate(voltarPara)}>
             Cancelar
           </button>
         </div>
