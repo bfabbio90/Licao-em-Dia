@@ -1,8 +1,8 @@
 # MyHomework
 
-> **Este App é para papais e mamães. Acompanhe os deveres de casa dos seus filhos.**
+> **O MyHomework é um app feito para pais e mães que querem acompanhar a lição de casa dos filhos. Quem usa é o responsável, não o aluno.**
 
-O MyHomework é para os **pais e responsáveis** usarem, **não os alunos**. É o adulto quem:
+No dia a dia, é o adulto quem:
 
 - cria a conta e faz o login;
 - anota cada lição que a criança trouxe da escola, com a matéria e a data de entrega;
