@@ -17,8 +17,9 @@ export default function Navbar() {
       {usuario ? (
         <nav>
           <NavLink to="/" end>
-            Lições
+            Calendário
           </NavLink>
+          <NavLink to="/licoes">Lições</NavLink>
           <NavLink to="/materias">Matérias</NavLink>
 
           <span className="usuario">

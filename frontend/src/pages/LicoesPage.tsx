@@ -72,7 +72,7 @@ export default function LicoesPage() {
     <section>
       <div className="cabecalho">
         <h1>Lições</h1>
-        <Link to="/licoes/nova" className="botao">
+        <Link to="/licoes/nova" state={{ de: '/licoes' }} className="botao">
           + Nova lição
         </Link>
       </div>

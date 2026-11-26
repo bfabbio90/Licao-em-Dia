@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router'
 import Navbar from './components/Navbar'
 import RotaProtegida from './components/RotaProtegida'
 import AuthProvider from './contexts/AuthProvider'
+import CalendarioPage from './pages/CalendarioPage'
 import LicaoFormPage from './pages/LicaoFormPage'
 import LicoesPage from './pages/LicoesPage'
 import LoginPage from './pages/LoginPage'
@@ -21,7 +22,8 @@ export default function App() {
 
             {/* Rotas que exigem login */}
             <Route element={<RotaProtegida />}>
-              <Route path="/" element={<LicoesPage />} />
+              <Route path="/" element={<CalendarioPage />} />
+              <Route path="/licoes" element={<LicoesPage />} />
               <Route path="/licoes/nova" element={<LicaoFormPage />} />
               <Route path="/licoes/:id/editar" element={<LicaoFormPage />} />
               <Route path="/materias" element={<MateriasPage />} />
