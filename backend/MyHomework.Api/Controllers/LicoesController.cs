@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyHomework.Api.Data;
@@ -7,6 +8,7 @@ namespace MyHomework.Api.Controllers;
 
 [ApiController]
 [Route("api/licoes")]
+[Authorize]
 public class LicoesController : ControllerBase
 {
     private readonly AppDbContext _context;
