@@ -58,6 +58,54 @@ h1 {
   color: var(--primaria);
 }
 
+.navbar nav {
+  align-items: center;
+}
+
+.usuario {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: 16px;
+  border-left: 1px solid var(--borda);
+  font-weight: 600;
+}
+
+.selo-admin {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: #e0e7ff;
+  color: var(--primaria);
+  font-size: 0.75rem;
+}
+
+/* ---------- Login e cadastro ---------- */
+
+.pagina-auth {
+  max-width: 400px;
+  margin: 24px auto 0;
+}
+
+.pagina-auth .formulario button[type='submit'] {
+  justify-self: start;
+}
+
+.rodape-auth {
+  text-align: center;
+  color: var(--texto-suave);
+}
+
+.rodape-auth a {
+  color: var(--primaria);
+  font-weight: 600;
+}
+
+.dica {
+  color: var(--texto-suave);
+  font-size: 0.85rem;
+  font-weight: 400;
+}
+
 /* ---------- Conteúdo ---------- */
 
 .conteudo {
@@ -259,6 +307,13 @@ select {
 .erro {
   background: #fee2e2;
   color: var(--perigo);
+  padding: 10px 14px;
+  border-radius: 8px;
+}
+
+.aviso {
+  background: #fef3c7;
+  color: var(--alerta);
   padding: 10px 14px;
   border-radius: 8px;
 }
