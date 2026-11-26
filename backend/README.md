@@ -1,4 +1,4 @@
-# MyHomework — Backend
+# Lição Em Dia — Backend
 
 API REST em **ASP.NET Core (.NET 10)** que guarda usuários, matérias e lições num banco **MySQL**. A autenticação usa **ASP.NET Core Identity** com **tokens JWT**.
 

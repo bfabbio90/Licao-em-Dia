@@ -1,4 +1,4 @@
-# MyHomework
+# Lição Em Dia
 
 > [!IMPORTANT]
 > **Este app é para ser usado somente por responsáveis: papais e mamães.** Quem cria a conta, faz o login, cadastra as lições e acompanha o andamento é sempre o responsável.
@@ -7,7 +7,7 @@
 
 **Um projeto pessoal para acompanhar lições de casa.**
 
-Criei o MyHomework para atender uma necessidade minha: ter um jeito simples de saber quais lições existem, para quando são e o que já foi feito. É um **MVP** (produto mínimo viável) para a minha rotina em casa. Não é um produto e não é comercial.
+Criei o Lição Em Dia para atender uma necessidade minha: ter um jeito simples de saber quais lições existem, para quando são e o que já foi feito. É um **MVP** (produto mínimo viável) para a minha rotina em casa. Não é um produto e não é comercial.
 
 O projeto também é a forma que encontrei de estudar e praticar ASP.NET Core, Entity Framework, autenticação com JWT e React, construindo algo que eu mesmo uso.
 
@@ -37,6 +37,10 @@ O projeto também é a forma que encontrei de estudar e praticar ASP.NET Core, E
 ![Tela de login com a mensagem para os pais e o formulário de e-mail e senha](docs/tela-login.png)
 
 Quem não está logado só vê o login e o cadastro. Depois de criar a conta, a pessoa volta para o login com o aviso "Conta criada" e o e-mail já preenchido.
+
+### Nova lição
+
+![Formulário de nova lição com título, descrição, data de entrega e matéria](docs/tela-nova-licao.png)
 
 ### Outras telas
 
@@ -249,4 +253,3 @@ O `.env.local` guarda o endereço da API (`VITE_API_URL`). Abra `http://localhos
 - Usar DTOs também em lições e matérias, e validar a matéria no `PUT` de lições.
 - Lembretes de prazo e visão por semana no calendário.
 - Testes (xUnit e Vitest), GitHub Actions e Docker Compose.
-- Hospedar a aplicação para usar pelo celular fora de casa.
