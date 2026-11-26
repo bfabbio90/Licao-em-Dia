@@ -2,6 +2,13 @@ import { useEffect, useMemo, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { Link } from 'react-router'
 import { concluirLicao, listarLicoes, listarMaterias, mensagemDeErro } from '../api/api'
+import {
+  IconeCheck,
+  IconeLapis,
+  IconeMais,
+  IconeSetaDireita,
+  IconeSetaEsquerda,
+} from '../components/Icones'
 import { useAuth } from '../contexts/auth'
 import type { Licao, Materia } from '../types'
 import { corDaMateria } from '../utils/cores'
@@ -126,13 +133,13 @@ export default function CalendarioPage() {
   }
 
   if (carregando) {
-    return <p>Carregando...</p>
+    return <p className="carregando">Carregando...</p>
   }
 
   const primeiroNome = usuario?.nome.split(' ')[0] ?? ''
   const licoesDoDia = licoesPorDia.get(diaSelecionado) ?? []
 
-  let mensagem = 'Tudo em dia por aqui. 🎉'
+  let mensagem = 'Tudo em dia por aqui.'
   if (resumo.atrasadas > 0) {
     mensagem = `${resumo.atrasadas === 1 ? 'Há 1 lição atrasada' : `Há ${resumo.atrasadas} lições atrasadas`}. Que tal começar por ${resumo.atrasadas === 1 ? 'ela' : 'elas'}?`
   } else if (resumo.hoje > 0) {
@@ -146,50 +153,51 @@ export default function CalendarioPage() {
 
   return (
     <section className="pagina-calendario">
-      <div className="cabecalho">
-        <div className="saudacao">
-          <h1>Olá, {primeiroNome}!</h1>
-          <p>{mensagem}</p>
+      <div className="pagina-topo">
+        <div>
+          <h1>Olá, {primeiroNome}</h1>
+          <p className="pagina-subtitulo">{mensagem}</p>
         </div>
         <Link to={`/licoes/nova?data=${diaSelecionado}`} state={{ de: '/' }} className="botao">
-          + Nova lição
+          <IconeMais />
+          Nova lição
         </Link>
       </div>
 
       {erro && <p className="erro">{erro}</p>}
 
-      <div className="resumo">
+      <dl className="resumo">
         <div className="resumo-item">
-          <strong>{resumo.hoje}</strong>
-          <span>para hoje</span>
+          <dt>Para hoje</dt>
+          <dd>{resumo.hoje}</dd>
         </div>
         <div className="resumo-item">
-          <strong>{resumo.semana}</strong>
-          <span>nos próximos 7 dias</span>
+          <dt>Próximos 7 dias</dt>
+          <dd>{resumo.semana}</dd>
         </div>
         <div className={resumo.atrasadas > 0 ? 'resumo-item alerta' : 'resumo-item'}>
-          <strong>{resumo.atrasadas}</strong>
-          <span>atrasadas</span>
+          <dt>Atrasadas</dt>
+          <dd>{resumo.atrasadas}</dd>
         </div>
-        <div className="resumo-item sucesso">
-          <strong>{resumo.feitasNoMes}</strong>
-          <span>feitas no mês</span>
+        <div className="resumo-item">
+          <dt>Feitas no mês</dt>
+          <dd>{resumo.feitasNoMes}</dd>
         </div>
-      </div>
+      </dl>
 
       <div className="calendario-layout">
         <div className="calendario">
           <div className="calendario-topo">
             <h2>{nomeDoMes(mesVisivel.ano, mesVisivel.mes)}</h2>
             <div className="navegacao-mes">
-              <button className="botao-icone" onClick={() => mudarMes(-1)} aria-label="Mês anterior">
-                ‹
-              </button>
-              <button className="botao-secundario" onClick={irParaHoje}>
+              <button className="botao-secundario botao-pequeno" onClick={irParaHoje}>
                 Hoje
               </button>
+              <button className="botao-icone" onClick={() => mudarMes(-1)} aria-label="Mês anterior">
+                <IconeSetaEsquerda />
+              </button>
               <button className="botao-icone" onClick={() => mudarMes(1)} aria-label="Próximo mês">
-                ›
+                <IconeSetaDireita />
               </button>
             </div>
           </div>
@@ -263,29 +271,52 @@ export default function CalendarioPage() {
             <ul className="painel-lista">
               {licoesDoDia.map((licao) => {
                 const atrasada = estaAtrasada(licao)
+                const pendente = licao.status === 'Pendente'
                 return (
-                  <li key={licao.id} style={estiloDaCor(licao.materiaId)}>
-                    <div className="card-topo">
-                      <span className="materia">{nomeDaMateria(licao.materiaId)}</span>
-                      <span className={`status status-${licao.status.toLowerCase()}`}>
-                        {licao.status}
+                  <li
+                    key={licao.id}
+                    className={pendente ? undefined : 'licao-concluida'}
+                    style={estiloDaCor(licao.materiaId)}
+                  >
+                    <button
+                      className="licao-check"
+                      onClick={() => handleConcluir(licao.id)}
+                      disabled={!pendente}
+                      aria-label={
+                        pendente ? `Marcar "${licao.titulo}" como feita` : `"${licao.titulo}" já foi feita`
+                      }
+                      title={pendente ? 'Marcar como feita' : undefined}
+                    >
+                      {!pendente && <IconeCheck tamanho={13} strokeWidth={3} />}
+                    </button>
+
+                    <div className="painel-licao">
+                      <span className="licao-titulo">{licao.titulo}</span>
+                      {licao.descricao && <span className="licao-descricao">{licao.descricao}</span>}
+                      <span className="painel-licao-meta">
+                        <span className="licao-materia">
+                          <span className="ponto-cor" />
+                          {nomeDaMateria(licao.materiaId)}
+                        </span>
+                        {atrasada ? (
+                          <span className="etiqueta-atraso">Atrasada</span>
+                        ) : (
+                          <span className={`status status-${licao.status.toLowerCase()}`}>
+                            {licao.status}
+                          </span>
+                        )}
                       </span>
                     </div>
-                    <strong className="painel-titulo">{licao.titulo}</strong>
-                    {licao.descricao && <p className="descricao">{licao.descricao}</p>}
-                    {atrasada && <p className="data atrasada">Atrasada</p>}
-                    <div className="acoes">
-                      {licao.status === 'Pendente' && (
-                        <button onClick={() => handleConcluir(licao.id)}>Marcar como feita</button>
-                      )}
-                      <Link
-                        to={`/licoes/${licao.id}/editar`}
-                        state={{ de: '/' }}
-                        className="botao botao-secundario"
-                      >
-                        Editar
-                      </Link>
-                    </div>
+
+                    <Link
+                      to={`/licoes/${licao.id}/editar`}
+                      state={{ de: '/' }}
+                      className="botao-icone"
+                      aria-label={`Editar "${licao.titulo}"`}
+                      title="Editar"
+                    >
+                      <IconeLapis />
+                    </Link>
                   </li>
                 )
               })}
@@ -295,9 +326,10 @@ export default function CalendarioPage() {
           <Link
             to={`/licoes/nova?data=${diaSelecionado}`}
             state={{ de: '/' }}
-            className="botao botao-adicionar"
+            className="botao botao-secundario botao-adicionar"
           >
-            + Adicionar lição neste dia
+            <IconeMais />
+            Adicionar lição neste dia
           </Link>
         </aside>
       </div>

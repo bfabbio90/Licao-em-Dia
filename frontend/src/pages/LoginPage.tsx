@@ -40,12 +40,13 @@ export default function LoginPage() {
   return (
     <section className="pagina-auth">
       <Apresentacao />
-      <h1>Entrar</h1>
-
-      {sessaoExpirou && !erro && <p className="aviso">Sua sessão expirou. Entre de novo.</p>}
-      {erro && <p className="erro">{erro}</p>}
 
       <form className="formulario" onSubmit={handleSubmit}>
+        <h1>Entrar</h1>
+
+        {sessaoExpirou && !erro && <p className="aviso">Sua sessão expirou. Entre de novo.</p>}
+        {erro && <p className="erro">{erro}</p>}
+
         <label>
           E-mail
           <input
