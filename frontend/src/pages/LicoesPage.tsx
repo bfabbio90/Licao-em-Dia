@@ -7,6 +7,7 @@ import {
   listarMaterias,
   mensagemDeErro,
 } from '../api/api'
+import { IconeMais } from '../components/Icones'
 import LicaoCard from '../components/LicaoCard'
 import type { Licao, Materia, StatusLicao } from '../types'
 
@@ -65,36 +66,57 @@ export default function LicoesPage() {
     .sort((a, b) => a.dataEntrega.localeCompare(b.dataEntrega))
 
   if (carregando) {
-    return <p>Carregando...</p>
+    return <p className="carregando">Carregando...</p>
   }
+
+  // Quantas lições existem em cada filtro, para mostrar ao lado do nome
+  const contagem = (opcao: Filtro) =>
+    opcao === 'Todas' ? licoes.length : licoes.filter((l) => l.status === opcao).length
+
+  const pendentes = contagem('Pendente')
 
   return (
     <section>
-      <div className="cabecalho">
-        <h1>Lições</h1>
+      <div className="pagina-topo">
+        <div>
+          <h1>Lições</h1>
+          <p className="pagina-subtitulo">
+            {pendentes === 0
+              ? 'Nenhuma lição pendente.'
+              : pendentes === 1
+                ? '1 lição pendente.'
+                : `${pendentes} lições pendentes.`}
+          </p>
+        </div>
         <Link to="/licoes/nova" state={{ de: '/licoes' }} className="botao">
-          + Nova lição
+          <IconeMais />
+          Nova lição
         </Link>
       </div>
 
       {erro && <p className="erro">{erro}</p>}
 
-      <div className="filtros">
+      <div className="segmentos" role="tablist" aria-label="Filtrar por status">
         {FILTROS.map((opcao) => (
           <button
             key={opcao}
-            className={filtro === opcao ? 'filtro ativo' : 'filtro'}
+            role="tab"
+            aria-selected={filtro === opcao}
+            className={filtro === opcao ? 'segmento ativo' : 'segmento'}
             onClick={() => setFiltro(opcao)}
           >
             {opcao}
+            <span className="segmento-contagem">{contagem(opcao)}</span>
           </button>
         ))}
       </div>
 
       {licoesVisiveis.length === 0 ? (
-        <p className="vazio">Nenhuma lição por aqui.</p>
+        <div className="vazio">
+          <p>Nenhuma lição {filtro === 'Todas' ? 'cadastrada' : `com status "${filtro}"`}.</p>
+        </div>
       ) : (
-        <div className="lista">
+        <ul className="lista-licoes">
           {licoesVisiveis.map((licao) => (
             <LicaoCard
               key={licao.id}
@@ -104,7 +126,7 @@ export default function LicoesPage() {
               onApagar={handleApagar}
             />
           ))}
-        </div>
+        </ul>
       )}
     </section>
   )

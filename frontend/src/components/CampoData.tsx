@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ChangeEvent } from 'react'
 import { deDataBR, deISO, diasDaGrade, formatarData, hojeISO, nomeDoMes, somarDias } from '../utils/datas'
+import { IconeCalendario, IconeSetaDireita, IconeSetaEsquerda } from './Icones'
 
 interface CampoDataProps {
   valor: string // "2026-11-27", ou '' enquanto a data não estiver completa
@@ -126,18 +127,18 @@ export default function CampoData({ valor, onChange, required }: CampoDataProps)
         aria-label="Abrir calendário"
         aria-expanded={aberto}
       >
-        📅
+        <IconeCalendario />
       </button>
 
       {aberto && (
         <div className="seletor-data" role="dialog" aria-label="Escolher data">
           <div className="seletor-topo">
             <button type="button" className="botao-icone" onClick={() => mudarMes(-1)} aria-label="Mês anterior">
-              ‹
+              <IconeSetaEsquerda />
             </button>
             <strong>{nomeDoMes(mesVisivel.ano, mesVisivel.mes)}</strong>
             <button type="button" className="botao-icone" onClick={() => mudarMes(1)} aria-label="Próximo mês">
-              ›
+              <IconeSetaDireita />
             </button>
           </div>
 

@@ -46,11 +46,12 @@ export default function RegistroPage() {
   return (
     <section className="pagina-auth">
       <Apresentacao />
-      <h1>Criar conta</h1>
-
-      {erro && <p className="erro">{erro}</p>}
 
       <form className="formulario" onSubmit={handleSubmit}>
+        <h1>Criar conta</h1>
+
+        {erro && <p className="erro">{erro}</p>}
+
         <label>
           Nome
           <input

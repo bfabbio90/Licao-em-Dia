@@ -83,8 +83,15 @@ export default function LicaoFormPage() {
   }
 
   return (
-    <section>
-      <h1>{editando ? 'Editar lição' : 'Nova lição'}</h1>
+    <section className="pagina-estreita">
+      <div className="pagina-topo">
+        <div>
+          <h1>{editando ? 'Editar lição' : 'Nova lição'}</h1>
+          <p className="pagina-subtitulo">
+            {editando ? 'Altere os dados e salve.' : 'Anote a lição e a data de entrega.'}
+          </p>
+        </div>
+      </div>
 
       {erro && <p className="erro">{erro}</p>}
 
@@ -104,21 +111,23 @@ export default function LicaoFormPage() {
           />
         </label>
 
-        <label>
-          Data de entrega
-          <CampoData valor={dataEntrega} onChange={setDataEntrega} required />
-        </label>
+        <div className="campos-lado-a-lado">
+          <label>
+            Data de entrega
+            <CampoData valor={dataEntrega} onChange={setDataEntrega} required />
+          </label>
 
-        <label>
-          Matéria
-          <select value={materiaId} onChange={(e) => setMateriaId(Number(e.target.value))}>
-            {materias.map((m) => (
-              <option key={m.id} value={m.id}>
-                {`${m.icone} ${m.nome}`.trim()}
-              </option>
-            ))}
-          </select>
-        </label>
+          <label>
+            Matéria
+            <select value={materiaId} onChange={(e) => setMateriaId(Number(e.target.value))}>
+              {materias.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {`${m.icone} ${m.nome}`.trim()}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
 
         {editando && (
           <label>
@@ -131,12 +140,12 @@ export default function LicaoFormPage() {
           </label>
         )}
 
-        <div className="acoes">
-          <button type="submit" disabled={salvando}>
-            {salvando ? 'Salvando...' : 'Salvar'}
-          </button>
+        <div className="formulario-rodape">
           <button type="button" className="botao-secundario" onClick={() => navigate(voltarPara)}>
             Cancelar
+          </button>
+          <button type="submit" disabled={salvando}>
+            {salvando ? 'Salvando...' : 'Salvar'}
           </button>
         </div>
       </form>
