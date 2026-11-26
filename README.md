@@ -1,99 +1,301 @@
 # MyHomework
 
-Aplicação para organizar lições de casa por matéria. Cada matéria agrupa suas lições, e cada lição tem título, descrição, data de entrega e um status que acompanha o andamento (pendente, feita ou entregue).
+Aplicação para organizar lições de casa por matéria. Cada matéria agrupa suas lições, e cada lição tem título, descrição, data de entrega e um status que acompanha o andamento: pendente, feita ou entregue.
 
-O repositório tem duas partes: uma API em ASP.NET Core, já concluída, e uma interface em React, em desenvolvimento. No frontend já existem a configuração do projeto, os tipos dos dados e as funções que chamam a API; as telas ainda estão sendo feitas.
+O projeto é dividido em duas partes que conversam por HTTP:
+
+- **backend**: uma API REST em ASP.NET Core que guarda os dados num banco MySQL;
+- **frontend**: uma interface em React que consome essa API.
+
+## Sumário
+
+- [Funcionalidades](#funcionalidades)
+- [Tecnologias](#tecnologias)
+- [Arquitetura](#arquitetura)
+- [Estrutura de pastas](#estrutura-de-pastas)
+- [Telas e navegação](#telas-e-navegação)
+- [Modelo de dados](#modelo-de-dados)
+- [Ciclo de vida de uma lição](#ciclo-de-vida-de-uma-lição)
+- [Exemplo de fluxo completo: criar uma lição](#exemplo-de-fluxo-completo-criar-uma-lição)
+- [Endpoints da API](#endpoints-da-api)
+- [Como rodar](#como-rodar)
+- [Decisões do projeto](#decisões-do-projeto)
+- [Fluxo de trabalho no Git](#fluxo-de-trabalho-no-git)
+- [Próximas etapas](#próximas-etapas)
+
+## Funcionalidades
+
+**Lições**
+
+- listar todas as lições, da entrega mais próxima para a mais distante;
+- filtrar por status (todas, pendentes, feitas ou entregues);
+- destacar em vermelho as lições pendentes com data de entrega vencida;
+- criar e editar lições pelo mesmo formulário;
+- marcar uma lição como feita com um clique;
+- apagar lições, com confirmação.
+
+**Matérias**
+
+- listar as matérias, cada uma com uma cor própria;
+- cadastrar novas matérias;
+- apagar matérias, desde que não tenham lições.
+
+A primeira migration já cadastra quatro matérias: Letras, Números, Artes e Natureza.
 
 ## Tecnologias
 
-**Backend**
+| Camada   | Tecnologia                                   | Uso                                            |
+|----------|----------------------------------------------|------------------------------------------------|
+| Backend  | .NET 10 e ASP.NET Core                       | API REST com controllers                       |
+| Backend  | Entity Framework Core 10                     | acesso ao banco e migrations                   |
+| Backend  | `MySql.EntityFrameworkCore`                  | provedor oficial do MySQL para o EF Core       |
+| Backend  | Swagger (Swashbuckle)                        | documentação e testes dos endpoints            |
+| Banco    | MySQL                                        | armazenamento das matérias e lições            |
+| Frontend | React 19 com TypeScript                      | interface                                      |
+| Frontend | React Router                                 | navegação entre as telas                       |
+| Frontend | Vite                                         | servidor de desenvolvimento e build            |
+| Frontend | `fetch` nativo                               | chamadas à API, sem bibliotecas extras         |
 
-- .NET 10 e ASP.NET Core (Web API com controllers)
-- Entity Framework Core 10 com o provedor oficial do MySQL (`MySql.EntityFrameworkCore`)
-- MySQL
-- Swagger (Swashbuckle) para documentar e testar os endpoints
+## Arquitetura
 
-**Frontend**
+Cada camada só conversa com a camada vizinha. As telas não fazem requisições: elas chamam funções de `api.ts`. Os controllers não escrevem SQL: eles usam o `AppDbContext`, que o Entity Framework traduz em comandos para o MySQL.
 
-- React 19 com TypeScript
-- Vite como servidor de desenvolvimento e bundler
-- `fetch` nativo para falar com a API, sem bibliotecas extras
+```mermaid
+flowchart LR
+    subgraph Navegador["Navegador (React + TypeScript)"]
+        Telas["Telas<br/>LicoesPage, LicaoFormPage, MateriasPage"]
+        Api["api.ts<br/>uma função por endpoint"]
+        Telas --> Api
+    end
 
-## Estrutura
+    subgraph Servidor["API (ASP.NET Core, porta 5229)"]
+        Controllers["Controllers<br/>LicoesController, MateriasController"]
+        Contexto["AppDbContext<br/>Entity Framework Core"]
+        Controllers --> Contexto
+    end
+
+    Banco[("MySQL<br/>banco myhomework")]
+
+    Api -- "HTTP + JSON" --> Controllers
+    Contexto -- "SQL" --> Banco
+```
+
+O mesmo desenho, com as rotas de cada tela:
+
+![Diagrama: as telas do React chamam o api.ts, que fala com a API em C# por HTTP e JSON; a API acessa o MySQL](docs/arquitetura-frontend.png)
+
+## Estrutura de pastas
 
 ```
 backend/
   MyHomework.slnx
   MyHomework.Api/
-    Controllers/   endpoints de matérias e lições
-    Data/          AppDbContext: tabelas, regras e dados iniciais
-    Migrations/    histórico do esquema do banco
-    Models/        classes Materia e Licao
-    Program.cs     configuração da API (banco, JSON, Swagger, CORS)
+    Controllers/
+      LicoesController.cs     endpoints de lições
+      MateriasController.cs   endpoints de matérias
+    Data/
+      AppDbContext.cs         tabelas, regras e dados iniciais
+    Migrations/               histórico do esquema do banco
+    Models/
+      Licao.cs                classe Licao e enum StatusLicao
+      Materia.cs              classe Materia
+    Program.cs                configuração: banco, JSON, Swagger, CORS
+
 frontend/
-  .env.example     modelo da variável com o endereço da API
+  .env.example                modelo da variável com o endereço da API
   index.html
   src/
-    api/api.ts     todas as chamadas à API em um só lugar
-    utils/datas.ts formatação de datas e regra de lição atrasada
-    types.ts       formato dos dados que a API devolve e recebe
-    App.tsx        componente principal
-    main.tsx       ponto de entrada do React
+    api/
+      api.ts                  todas as chamadas à API
+    components/
+      LicaoCard.tsx           card de uma lição
+      Navbar.tsx              barra de navegação
+    pages/
+      LicoesPage.tsx          lista de lições com filtros
+      LicaoFormPage.tsx       formulário de criar e editar lição
+      MateriasPage.tsx        lista e cadastro de matérias
+    utils/
+      cores.ts                cor de cada matéria
+      datas.ts                formatação de datas e regra de atraso
+    types.ts                  formato dos dados da API
+    App.tsx                   rotas
+    index.css                 estilos
+    main.tsx                  ponto de entrada
+
+docs/                         imagens usadas neste README
 ```
 
-## Como o frontend fala com a API
+## Telas e navegação
 
-As telas não chamam a API diretamente: elas pedem os dados às funções de `api.ts`, e só esse arquivo faz as requisições HTTP. A API, por sua vez, é a única que acessa o MySQL.
+| Rota                  | Tela            | O que faz                                              |
+|-----------------------|-----------------|--------------------------------------------------------|
+| `/`                   | `LicoesPage`    | lista as lições, com filtros e ações em cada card      |
+| `/licoes/nova`        | `LicaoFormPage` | formulário vazio para criar uma lição                  |
+| `/licoes/:id/editar`  | `LicaoFormPage` | o mesmo formulário, preenchido com a lição escolhida   |
+| `/materias`           | `MateriasPage`  | lista as matérias e permite cadastrar e apagar         |
 
-![Diagrama: as telas do React chamam o api.ts, que fala com a API em C# por HTTP e JSON; a API acessa o MySQL](docs/arquitetura-frontend.png)
+A barra de navegação aparece em todas as telas. O caminho entre elas:
 
-O diagrama mostra o frontend como ele vai ficar. As telas (`LicoesPage`, `LicaoFormPage`, `MateriasPage`) e o componente `LicaoCard` ainda não foram criados; o `api.ts` já existe.
+```mermaid
+flowchart TD
+    Navbar["Barra de navegação"] --> Licoes["Lista de lições<br/>/"]
+    Navbar --> Materias["Matérias<br/>/materias"]
+
+    Licoes -- "+ Nova lição" --> Nova["Formulário<br/>/licoes/nova"]
+    Licoes -- "Editar" --> Editar["Formulário<br/>/licoes/:id/editar"]
+    Licoes -- "Marcar como feita" --> Licoes
+    Licoes -- "Apagar" --> Licoes
+
+    Nova -- "Salvar ou Cancelar" --> Licoes
+    Editar -- "Salvar ou Cancelar" --> Licoes
+
+    Materias -- "Adicionar ou Apagar" --> Materias
+```
 
 ## Modelo de dados
 
 Uma matéria tem várias lições, e cada lição pertence a uma única matéria.
 
-**Materia**
+```mermaid
+erDiagram
+    MATERIA ||--o{ LICAO : "tem"
 
-| Campo    | Tipo     | Observação                    |
-|----------|----------|-------------------------------|
-| Id       | int      | chave primária                |
-| Nome     | string   | obrigatório, até 60 caracteres |
-| Icone    | string   | opcional, até 10 caracteres   |
-| CriadaEm | DateTime | preenchido pela API           |
+    MATERIA {
+        int Id PK
+        string Nome "até 60 caracteres"
+        string Icone "até 10 caracteres"
+        datetime CriadaEm
+    }
 
-**Licao**
+    LICAO {
+        int Id PK
+        string Titulo "até 120 caracteres"
+        string Descricao "opcional, até 500"
+        datetime DataEntrega
+        string Status "Pendente, Feita ou Entregue"
+        datetime ConcluidaEm "opcional"
+        datetime CriadaEm
+        datetime AtualizadaEm "opcional"
+        int MateriaId FK
+    }
+```
 
-| Campo        | Tipo      | Observação                              |
-|--------------|-----------|-----------------------------------------|
-| Id           | int       | chave primária                          |
-| Titulo       | string    | obrigatório, até 120 caracteres         |
-| Descricao    | string    | opcional, até 500 caracteres            |
-| DataEntrega  | DateTime  |                                         |
-| Status       | enum      | `Pendente`, `Feita` ou `Entregue`       |
-| ConcluidaEm  | DateTime? | preenchido ao concluir a lição          |
-| CriadaEm     | DateTime  | preenchido pela API                     |
-| AtualizadaEm | DateTime? | preenchido pela API a cada edição       |
-| MateriaId    | int       | chave estrangeira para `Materia`        |
+Regras que valem para os dados:
 
-O status é gravado no banco como texto e aparece assim no JSON (`"Pendente"`, e não `0`).
+- o status é gravado no banco como texto e aparece assim no JSON (`"Pendente"`, e não `0`);
+- `CriadaEm`, `AtualizadaEm` e `ConcluidaEm` são preenchidos pela API, nunca pelo cliente;
+- uma matéria só pode ser apagada se não tiver lições. A regra existe no banco (`DeleteBehavior.Restrict`) e também no controller, que responde com `400` e uma mensagem clara.
 
-Uma matéria só pode ser apagada se não tiver lições. Essa regra existe no banco (`DeleteBehavior.Restrict`) e também no controller, que responde com `400` em vez de deixar o banco recusar.
+## Ciclo de vida de uma lição
 
-A migration inicial já cadastra quatro matérias: Letras, Números, Artes e Natureza.
+Toda lição nasce como `Pendente`. O botão "Marcar como feita" usa o endpoint `PATCH /concluir`, que muda o status e registra a data de conclusão. No formulário de edição, o status pode ser trocado livremente.
+
+```mermaid
+stateDiagram-v2
+    [*] --> Pendente: criar (POST)
+    Pendente --> Feita: marcar como feita (PATCH)
+    Pendente --> Feita: editar (PUT)
+    Feita --> Entregue: editar (PUT)
+    Pendente --> Entregue: editar (PUT)
+    Entregue --> Pendente: editar (PUT)
+    Feita --> Pendente: editar (PUT)
+    Pendente --> [*]: apagar (DELETE)
+    Feita --> [*]: apagar (DELETE)
+    Entregue --> [*]: apagar (DELETE)
+```
+
+Na tela, uma lição aparece como **atrasada** quando ainda está `Pendente` e a data de entrega já passou.
+
+## Exemplo de fluxo completo: criar uma lição
+
+O que acontece entre o clique em "Salvar" e a lição aparecer na lista:
+
+```mermaid
+sequenceDiagram
+    actor Aluno
+    participant Form as LicaoFormPage
+    participant Api as api.ts
+    participant Ctrl as LicoesController
+    participant Db as MySQL
+
+    Aluno->>Form: preenche e clica em Salvar
+    Form->>Api: criarLicao(dados)
+    Api->>Ctrl: POST /api/licoes (JSON)
+    Ctrl->>Db: a matéria existe?
+    alt matéria não existe
+        Ctrl-->>Api: 400 "Matéria não encontrada."
+        Api-->>Form: erro com a mensagem
+        Form-->>Aluno: mostra o erro em vermelho
+    else matéria existe
+        Ctrl->>Ctrl: define Status = Pendente e CriadaEm = agora
+        Ctrl->>Db: INSERT da lição
+        Ctrl-->>Api: 200 com a lição criada
+        Api-->>Form: lição criada
+        Form-->>Aluno: volta para a lista de lições
+    end
+```
+
+## Endpoints da API
+
+A documentação interativa fica em `http://localhost:5229/swagger` quando a API está rodando.
+
+### Matérias
+
+| Método | Rota                 | Descrição                                | Respostas          |
+|--------|----------------------|------------------------------------------|--------------------|
+| GET    | `/api/materias`      | lista todas as matérias                  | 200                |
+| GET    | `/api/materias/{id}` | busca uma matéria                        | 200, 404           |
+| POST   | `/api/materias`      | cria uma matéria                         | 200, 400           |
+| PUT    | `/api/materias/{id}` | altera nome e ícone                      | 200, 404           |
+| DELETE | `/api/materias/{id}` | apaga a matéria, se ela não tiver lições | 204, 400, 404      |
+
+### Lições
+
+| Método | Rota                         | Descrição                  | Respostas     |
+|--------|------------------------------|----------------------------|---------------|
+| GET    | `/api/licoes`                | lista todas as lições      | 200           |
+| GET    | `/api/licoes/{id}`           | busca uma lição            | 200, 404      |
+| POST   | `/api/licoes`                | cria uma lição             | 200, 400      |
+| PUT    | `/api/licoes/{id}`           | edita uma lição            | 200, 404      |
+| PATCH  | `/api/licoes/{id}/concluir`  | marca a lição como feita   | 200, 404      |
+| DELETE | `/api/licoes/{id}`           | apaga uma lição            | 204, 404      |
+
+Exemplo de corpo para criar uma lição:
+
+```json
+{
+  "titulo": "Ler o capítulo 1",
+  "descricao": "Páginas 10 a 15",
+  "dataEntrega": "2026-12-01T00:00:00",
+  "materiaId": 2
+}
+```
+
+Ao criar uma lição, a API ignora o que vier em `status`, `criadaEm`, `atualizadaEm` e `concluidaEm`: toda lição nova começa como `Pendente`. Se o `materiaId` não existir, a resposta é `400`.
 
 ## Como rodar
 
 ### Requisitos
 
 - [.NET SDK 10](https://dotnet.microsoft.com/download)
-- MySQL rodando localmente (porta 3306)
+- MySQL rodando localmente, na porta 3306
 - Ferramenta do Entity Framework: `dotnet tool install -g dotnet-ef`
-- [Node.js](https://nodejs.org/) 20.19 ou 22.12 em diante, para o frontend
+- [Node.js](https://nodejs.org/) 20.19 ou 22.12 em diante
+
+### Visão geral
+
+```mermaid
+flowchart LR
+    A["Guardar a connection string<br/>no User Secrets"] --> B["dotnet ef database update"]
+    B --> C["dotnet run<br/>API em :5229"]
+    C --> D["npm install"]
+    D --> E["Criar .env.local"]
+    E --> F["npm run dev<br/>site em :5173"]
+```
 
 ### Backend
 
-#### 1. Configurar a conexão com o banco
+**1. Configurar a conexão com o banco**
 
 A senha do banco não fica no repositório. Em desenvolvimento ela é guardada com o User Secrets do .NET, que salva os dados fora da pasta do projeto:
 
@@ -104,7 +306,7 @@ dotnet user-secrets set "ConnectionStrings:Default" "server=localhost;port=3306;
 
 O `appsettings.Development.json` traz a mesma connection string com a senha em branco, só como referência do formato.
 
-#### 2. Criar o banco
+**2. Criar o banco**
 
 ```bash
 dotnet ef database update
@@ -112,13 +314,13 @@ dotnet ef database update
 
 O comando cria o banco `myhomework`, as tabelas e as matérias iniciais.
 
-#### 3. Subir a API
+**3. Subir a API**
 
 ```bash
 dotnet run
 ```
 
-A API fica em `http://localhost:5229`, e a documentação do Swagger em `http://localhost:5229/swagger`.
+A API fica em `http://localhost:5229`.
 
 ### Frontend
 
@@ -143,45 +345,106 @@ Depois suba o servidor de desenvolvimento:
 npm run dev
 ```
 
-O frontend fica em `http://localhost:5173`, endereço que a API já libera no CORS.
+O site fica em `http://localhost:5173`, endereço que a API já libera no CORS.
 
-## Endpoints
+## Decisões do projeto
 
-### Matérias
+| Decisão | Motivo |
+|---------|--------|
+| Todas as chamadas HTTP ficam em `api.ts` | as telas não precisam conhecer endereços nem tratar erros de rede; trocar a URL da API muda um arquivo só |
+| O card de lição não chama a API | ele só avisa a página ("clicaram em concluir"); quem fala com a API é a página, e o card fica simples de reaproveitar |
+| Status salvo como texto | o banco e o JSON ficam legíveis (`Pendente` em vez de `0`) |
+| Cor da matéria calculada pelo `id` | não precisa de coluna no banco e cada matéria mantém sempre a mesma cor |
+| Senha do banco no User Secrets | a senha nunca entra no Git, nem por engano |
+| Endereço da API em `.env.local` | cada computador pode usar a sua porta sem mudar o código |
+| Matéria com lições não pode ser apagada | evita lições sem matéria; a API explica o motivo em vez de devolver erro 500 |
 
-| Método | Rota                 | Descrição                                      |
-|--------|----------------------|------------------------------------------------|
-| GET    | `/api/materias`      | lista todas as matérias                        |
-| GET    | `/api/materias/{id}` | busca uma matéria                              |
-| POST   | `/api/materias`      | cria uma matéria                               |
-| PUT    | `/api/materias/{id}` | altera nome e ícone                            |
-| DELETE | `/api/materias/{id}` | apaga a matéria, se ela não tiver lições       |
+## Fluxo de trabalho no Git
 
-### Lições
+Cada parte do projeto foi feita numa branch própria e entrou no `main` por pull request. As mensagens de commit seguem o padrão [Conventional Commits](https://www.conventionalcommits.org/):
 
-| Método | Rota                         | Descrição                                   |
-|--------|------------------------------|---------------------------------------------|
-| GET    | `/api/licoes`                | lista todas as lições                       |
-| GET    | `/api/licoes/{id}`           | busca uma lição                             |
-| POST   | `/api/licoes`                | cria uma lição                              |
-| PUT    | `/api/licoes/{id}`           | edita uma lição                             |
-| PATCH  | `/api/licoes/{id}/concluir`  | marca a lição como feita                    |
-| DELETE | `/api/licoes/{id}`           | apaga uma lição                             |
+| Tipo       | Uso                                  | Exemplo                                                    |
+|------------|--------------------------------------|------------------------------------------------------------|
+| `feat`     | funcionalidade nova                  | `feat(licoes): add LicoesController with CRUD endpoints`   |
+| `fix`      | correção de bug                      | `fix(licoes): validate materia on update`                  |
+| `docs`     | documentação                         | `docs: add project README`                                 |
+| `build`    | dependências                         | `build(deps): add react-router`                            |
+| `chore`    | configuração e manutenção            | `chore(frontend): scaffold React app with Vite`            |
 
-Exemplo de corpo para criar uma lição:
-
-```json
-{
-  "titulo": "Ler o capítulo 1",
-  "descricao": "Páginas 10 a 15",
-  "dataEntrega": "2026-12-01T00:00:00",
-  "materiaId": 2
-}
+```mermaid
+gitGraph
+    commit id: "setup inicial"
+    branch feat/materia-licao-models
+    commit id: "models"
+    checkout main
+    merge feat/materia-licao-models
+    branch feat/database-setup
+    commit id: "AppDbContext"
+    commit id: "conexão MySQL"
+    checkout main
+    merge feat/database-setup
+    branch feat/licoes-controller
+    commit id: "LicoesController"
+    checkout main
+    merge feat/licoes-controller
+    branch feat/react-router
+    commit id: "rotas e telas"
+    checkout main
+    merge feat/react-router
 ```
 
-Ao criar uma lição, a API ignora o que vier em `status`, `criadaEm`, `atualizadaEm` e `concluidaEm`: toda lição nova começa como `Pendente`. Se o `materiaId` não existir, a resposta é `400`.
+O gráfico mostra só algumas das branches, como exemplo do fluxo.
 
-## Próximos passos
+## Próximas etapas
 
-- Telas do frontend: lista de lições, formulário de lição e matérias
-- Validar a matéria também na edição de lições
+Melhorias planejadas, agrupadas por área.
+
+### Backend
+
+| Melhoria | Por quê |
+|----------|---------|
+| Exigir `Nome` não vazio na matéria (`[Required]`) | hoje a API aceita uma matéria com nome em branco; só o formulário do frontend impede |
+| Validar a matéria também no `PUT` de lições | com um `materiaId` inexistente, a edição devolve erro 500 em vez de 400 |
+| Ignorar o `id` enviado no `POST` | se o cliente mandar um `id`, a criação pode falhar com chave duplicada |
+| Preencher `ConcluidaEm` quando o status virar `Feita` pelo `PUT` | hoje só o botão "Marcar como feita" registra a data |
+| Usar DTOs de entrada e saída | separar o que a API recebe do que ela grava, em vez de usar as classes do banco direto |
+| Responder `201 Created` no `POST` | é a resposta padrão do HTTP para criação |
+| Remover o pacote `Microsoft.AspNetCore.OpenApi` | não é mais usado; a documentação vem do Swashbuckle |
+
+### Frontend
+
+| Melhoria | Por quê |
+|----------|---------|
+| Layout responsivo para celular | a tela foi pensada para computador |
+| Filtro por matéria na lista de lições | hoje só existe o filtro por status |
+| Editar o nome de uma matéria | a API já tem o endpoint, falta a tela |
+| Botão "Marcar como entregue" no card | hoje só dá para mudar para `Entregue` pelo formulário |
+| Contador de pendentes e atrasadas no topo | visão rápida do que falta fazer |
+| Confirmação de exclusão com componente próprio | substituir o `confirm()` do navegador |
+
+### Qualidade e entrega
+
+| Melhoria | Por quê |
+|----------|---------|
+| Testes da API com xUnit | garantir as regras de negócio a cada mudança |
+| Testes do frontend com Vitest | testar componentes e funções como `estaAtrasada` |
+| GitHub Actions | compilar e testar automaticamente a cada pull request |
+| Docker Compose com API, MySQL e frontend | subir o projeto inteiro com um comando |
+| Publicar a aplicação | deixar o projeto acessível fora do computador local |
+
+### Novas funcionalidades
+
+| Ideia | Descrição |
+|-------|-----------|
+| Login | cada aluno vê só as próprias lições |
+| Lembretes | avisar quando uma lição estiver perto do prazo |
+| Calendário | ver as entregas organizadas por dia |
+| Anexos | guardar uma foto ou arquivo junto com a lição |
+
+```mermaid
+flowchart LR
+    F1["Fase 1<br/>Correções na API<br/>validações e DTOs"] --> F2["Fase 2<br/>Melhorias de tela<br/>responsivo e filtros"]
+    F2 --> F3["Fase 3<br/>Testes e CI<br/>xUnit, Vitest, Actions"]
+    F3 --> F4["Fase 4<br/>Entrega<br/>Docker e publicação"]
+    F4 --> F5["Fase 5<br/>Novas funções<br/>login e lembretes"]
+```
