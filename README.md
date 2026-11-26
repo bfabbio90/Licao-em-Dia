@@ -2,7 +2,9 @@
 
 Aplicação para organizar lições de casa por matéria. Cada matéria agrupa suas lições, e cada lição tem título, descrição, data de entrega e um status que acompanha o andamento: pendente, feita ou entregue.
 
-Para usar a API é preciso ter uma conta. O cadastro e o login são feitos com o ASP.NET Core Identity, e a API identifica quem está chamando por um token JWT. Existem dois perfis: **Usuario**, que cuida das lições, e **Admin**, que também pode cadastrar, editar e apagar matérias.
+**Para quem é:** o MyHomework é feito para **pais e responsáveis**, não para os alunos. Quem cria a conta, anota as lições e acompanha o que já foi feito e entregue é o adulto. A criança não precisa ter conta nem usar o sistema.
+
+Para usar a API é preciso ter uma conta. O cadastro e o login são feitos com o ASP.NET Core Identity, e a API identifica quem está chamando por um token JWT. Existem dois perfis: **Usuario**, o responsável que cuida das lições, e **Admin**, que também pode cadastrar, editar e apagar matérias.
 
 O projeto é dividido em duas partes que conversam por HTTP:
 
@@ -317,7 +319,7 @@ Na tela, uma lição aparece como **atrasada** quando ainda está `Pendente` e a
 
 O que acontece entre o clique em "Salvar" e a lição aparecer na lista:
 
-1. O aluno preenche o formulário (`LicaoFormPage`) e clica em Salvar.
+1. O responsável preenche o formulário (`LicaoFormPage`) e clica em Salvar.
 2. A tela chama `criarLicao(dados)`, em `api.ts`.
 3. O `api.ts` envia um `POST /api/licoes` com os dados em JSON e o token no cabeçalho `Authorization`.
 4. A API valida o token. Sem token válido, responde `401`, a lição não é criada e a tela volta para o login.
@@ -534,7 +536,7 @@ Melhorias planejadas, agrupadas por área.
 
 | Melhoria | Por quê |
 |----------|---------|
-| Ligar cada lição a um usuário | hoje todo usuário logado vê e altera as lições de todos |
+| Ligar cada lição a um usuário | hoje todo responsável logado vê e altera as lições de todas as famílias |
 | Traduzir as mensagens de senha do Identity | hoje elas chegam em inglês na tela de cadastro ("Passwords must have at least one digit"); dá para trocar com um `IdentityErrorDescriber` em português |
 | Exigir `Nome` não vazio na matéria (`[Required]`) | hoje a API aceita uma matéria com nome em branco; só o formulário do frontend impede |
 | Validar a matéria também no `PUT` de lições | com um `materiaId` inexistente, a edição devolve erro 500 em vez de 400 |
@@ -571,7 +573,8 @@ Melhorias planejadas, agrupadas por área.
 
 | Ideia | Descrição |
 |-------|-----------|
-| Lições por aluno | cada aluno vê só as próprias lições (depende de ligar a lição ao usuário) |
+| Lições por família | cada responsável vê só as lições que ele mesmo cadastrou (depende de ligar a lição ao usuário) |
+| Mais de um filho | separar as lições de cada filho dentro da mesma conta |
 | Gerenciar usuários | tela de admin para listar contas e dar ou tirar a role `Admin` |
 | Lembretes | avisar quando uma lição estiver perto do prazo |
 | Calendário | ver as entregas organizadas por dia |
