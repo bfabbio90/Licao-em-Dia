@@ -336,11 +336,17 @@ select:focus {
    ========================================================= */
 
 .erro,
-.aviso {
+.aviso,
+.sucesso {
   margin: 0 0 16px;
   padding: 10px 12px;
   border-radius: var(--raio);
   font-size: 0.875rem;
+}
+
+.sucesso {
+  background: var(--sucesso-suave);
+  color: var(--sucesso);
 }
 
 .erro {

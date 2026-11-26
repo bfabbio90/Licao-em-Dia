@@ -10,10 +10,14 @@ export default function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
 
-  // Página que a pessoa tentou abrir antes de cair no login
-  const destino = (location.state as { de?: string } | null)?.de ?? '/'
+  // O que pode chegar junto com a navegação para o login:
+  // - de: a página que a pessoa tentou abrir antes de cair aqui
+  // - contaCriada e email: vindo do cadastro, para mostrar o aviso e preencher o e-mail
+  const estado = location.state as { de?: string; contaCriada?: boolean; email?: string } | null
+  const destino = estado?.de ?? '/'
+  const contaCriada = estado?.contaCriada === true
 
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState(estado?.email ?? '')
   const [senha, setSenha] = useState('')
   const [erro, setErro] = useState('')
   const [enviando, setEnviando] = useState(false)
@@ -44,7 +48,12 @@ export default function LoginPage() {
       <form className="formulario" onSubmit={handleSubmit}>
         <h1>Entrar</h1>
 
-        {sessaoExpirou && !erro && <p className="aviso">Sua sessão expirou. Entre de novo.</p>}
+        {contaCriada && !erro && (
+          <p className="sucesso">Conta criada. Entre com seu e-mail e senha.</p>
+        )}
+        {sessaoExpirou && !contaCriada && !erro && (
+          <p className="aviso">Sua sessão expirou. Entre de novo.</p>
+        )}
         {erro && <p className="erro">{erro}</p>}
 
         <label>
@@ -55,7 +64,7 @@ export default function LoginPage() {
             onChange={(e) => setEmail(e.target.value)}
             autoComplete="email"
             required
-            autoFocus
+            autoFocus={!contaCriada}
           />
         </label>
 
@@ -67,6 +76,7 @@ export default function LoginPage() {
             onChange={(e) => setSenha(e.target.value)}
             autoComplete="current-password"
             required
+            autoFocus={contaCriada}
           />
         </label>
 
