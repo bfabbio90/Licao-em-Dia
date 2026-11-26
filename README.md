@@ -2,6 +2,8 @@
 
 > [!IMPORTANT]
 > **Este app é para ser usado somente por responsáveis: papais e mamães.** Quem cria a conta, faz o login, cadastra as lições e acompanha o andamento é sempre o responsável.
+>
+> **O projeto não está em produção.** É apenas uma ideia para melhorar o meu dia a dia no acompanhamento dos deveres escolares da minha filha.
 
 **Um projeto pessoal para acompanhar lições de casa.**
 
@@ -57,6 +59,8 @@ frontend/src/             api, components, contexts, pages, utils, App.tsx
 ## Endpoints da API
 
 Documentação interativa em `http://localhost:5229/swagger`.
+
+![Swagger com os endpoints de Auth, Lições e Matérias e o botão Authorize](docs/swagger-endpoints.png)
 
 | Método | Rota                           | Acesso  |
 |--------|--------------------------------|---------|
