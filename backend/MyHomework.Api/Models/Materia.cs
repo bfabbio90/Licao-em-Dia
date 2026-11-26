@@ -7,7 +7,7 @@ public class Materia
     public int Id { get; set; }
     public string Nome { get; set; } = string.Empty;
 
-    public string Icone { get; set; } = "📚";
+    public string Icone { get; set; } = string.Empty;
 
     public DateTime CriadaEm { get; set; }
 
