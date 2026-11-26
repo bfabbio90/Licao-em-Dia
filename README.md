@@ -108,6 +108,8 @@ flowchart LR
 - O `AuthProvider` guarda quem está logado, e as telas consultam com o hook `useAuth()`. O `RotaProtegida` manda para o login quem não está logado.
 - Datas são tratadas em `utils/datas.ts`, sempre no fuso local, para evitar que `2026-11-27` vire o dia anterior no Brasil.
 
+Cada parte tem um README com mais detalhes: [backend](backend/README.md) e [frontend](frontend/README.md).
+
 ```
 backend/MyHomework.Api/
   Controllers/    AuthController, LicoesController, MateriasController
