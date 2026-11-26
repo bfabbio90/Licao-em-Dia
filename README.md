@@ -7,9 +7,7 @@ Para usar a API é preciso ter uma conta. O cadastro e o login são feitos com o
 O projeto é dividido em duas partes que conversam por HTTP:
 
 - **backend**: uma API REST em ASP.NET Core que guarda os dados num banco MySQL;
-- **frontend**: uma interface em React que consome essa API.
-
-> **Atenção:** a autenticação já está pronta no backend, mas o frontend ainda não tem tela de login nem envia o token. Enquanto isso não for feito, as telas recebem `401` da API. Para testar, use o Swagger (veja [Testar pelo Swagger](#testar-pelo-swagger)).
+- **frontend**: uma interface em React que consome essa API, com telas de login e cadastro.
 
 ## Sumário
 
@@ -32,9 +30,11 @@ O projeto é dividido em duas partes que conversam por HTTP:
 
 **Contas**
 
-- criar uma conta com nome, e-mail e senha;
+- criar uma conta com nome, e-mail e senha (a pessoa já entra logada depois do cadastro);
 - fazer login e receber um token JWT;
-- consultar os dados do usuário logado;
+- continuar logado ao recarregar a página, até o token vencer;
+- voltar automaticamente para o login quando a sessão expira;
+- sair pelo botão na barra de navegação;
 - primeiro administrador criado automaticamente ao subir a API.
 
 **Lições**
@@ -49,7 +49,7 @@ O projeto é dividido em duas partes que conversam por HTTP:
 **Matérias**
 
 - listar as matérias, cada uma com uma cor própria;
-- cadastrar, editar e apagar matérias (só administradores);
+- cadastrar, editar e apagar matérias (só administradores; para os outros usuários, a tela mostra só a lista);
 - apagar matérias só é permitido se elas não tiverem lições.
 
 A primeira migration já cadastra quatro matérias: Letras, Números, Artes e Natureza.
@@ -72,16 +72,21 @@ A primeira migration já cadastra quatro matérias: Letras, Números, Artes e Na
 
 ## Arquitetura
 
-Cada camada só conversa com a camada vizinha. As telas não fazem requisições: elas chamam funções de `api.ts`. Os controllers não escrevem SQL: eles usam o `AppDbContext` (ou o `UserManager` do Identity, no caso dos usuários), que o Entity Framework traduz em comandos para o MySQL.
+Cada camada só conversa com a camada vizinha. As telas não fazem requisições: elas chamam funções de `api.ts`, que coloca o token em cada chamada. Quem está logado fica no `AuthProvider`, e as telas perguntam com o hook `useAuth()`. Os controllers não escrevem SQL: eles usam o `AppDbContext` (ou o `UserManager` do Identity, no caso dos usuários), que o Entity Framework traduz em comandos para o MySQL.
 
 Antes de chegar aos controllers, toda requisição passa pelo middleware de autenticação, que lê o token do cabeçalho `Authorization` e descobre quem é o usuário. Depois, o middleware de autorização confere se ele pode acessar aquela rota.
 
 ```mermaid
 flowchart LR
     subgraph Navegador["Navegador (React + TypeScript)"]
-        Telas["Telas<br/>LicoesPage, LicaoFormPage, MateriasPage"]
+        Telas["Telas<br/>LoginPage, RegistroPage, LicoesPage,<br/>LicaoFormPage, MateriasPage"]
+        AuthCtx["AuthProvider<br/>quem está logado"]
         Api["api.ts<br/>uma função por endpoint"]
+        Sessao[("localStorage<br/>token e usuário")]
+        Telas --> AuthCtx
         Telas --> Api
+        AuthCtx --> Api
+        Api --> Sessao
     end
 
     subgraph Servidor["API (ASP.NET Core, porta 5229)"]
@@ -137,11 +142,18 @@ frontend/
   index.html
   src/
     api/
-      api.ts                  todas as chamadas à API
+      api.ts                  todas as chamadas à API, já com o token
+      sessao.ts               guarda o token no navegador e confere se venceu
     components/
       LicaoCard.tsx           card de uma lição
-      Navbar.tsx              barra de navegação
+      Navbar.tsx              barra de navegação, com o usuário e o botão Sair
+      RotaProtegida.tsx       manda para o login quem não está logado
+    contexts/
+      auth.ts                 contexto do login e o hook useAuth()
+      AuthProvider.tsx        guarda quem está logado e faz entrar e sair
     pages/
+      LoginPage.tsx           tela de login
+      RegistroPage.tsx        tela de cadastro
       LicoesPage.tsx          lista de lições com filtros
       LicaoFormPage.tsx       formulário de criar e editar lição
       MateriasPage.tsx        lista e cadastro de matérias
@@ -158,16 +170,20 @@ docs/                         imagens usadas neste README
 
 ## Telas e navegação
 
-| Rota                  | Tela            | O que faz                                              |
-|-----------------------|-----------------|--------------------------------------------------------|
-| `/`                   | `LicoesPage`    | lista as lições, com filtros e ações em cada card      |
-| `/licoes/nova`        | `LicaoFormPage` | formulário vazio para criar uma lição                  |
-| `/licoes/:id/editar`  | `LicaoFormPage` | o mesmo formulário, preenchido com a lição escolhida   |
-| `/materias`           | `MateriasPage`  | lista as matérias e permite cadastrar e apagar         |
+| Rota                  | Tela            | Acesso  | O que faz                                              |
+|-----------------------|-----------------|---------|--------------------------------------------------------|
+| `/login`              | `LoginPage`     | público | entrar com e-mail e senha                              |
+| `/registrar`          | `RegistroPage`  | público | criar uma conta; ao terminar, já entra logado          |
+| `/`                   | `LicoesPage`    | logado  | lista as lições, com filtros e ações em cada card      |
+| `/licoes/nova`        | `LicaoFormPage` | logado  | formulário vazio para criar uma lição                  |
+| `/licoes/:id/editar`  | `LicaoFormPage` | logado  | o mesmo formulário, preenchido com a lição escolhida   |
+| `/materias`           | `MateriasPage`  | logado  | lista as matérias; o admin também cadastra e apaga     |
 
-A barra de navegação aparece em todas as telas. Na lista de lições, o botão "+ Nova lição" e o botão "Editar" de cada card abrem o formulário; ao salvar ou cancelar, o formulário volta para a lista. "Marcar como feita" e "Apagar" agem na própria lista, sem trocar de tela.
+A barra de navegação aparece em todas as telas. Para quem está logado, ela mostra os links, o nome do usuário (com o selo "Admin", se for o caso) e o botão "Sair". Para quem não está, mostra "Entrar" e "Criar conta".
 
-As telas de cadastro e login ainda não existem (veja [Próximas etapas](#próximas-etapas)).
+Quem tenta abrir uma rota protegida sem estar logado vai para `/login`. Depois de entrar, a pessoa volta para a página que tinha tentado abrir.
+
+Na lista de lições, o botão "+ Nova lição" e o botão "Editar" de cada card abrem o formulário; ao salvar ou cancelar, o formulário volta para a lista. "Marcar como feita" e "Apagar" agem na própria lista, sem trocar de tela.
 
 ## Modelo de dados
 
@@ -275,6 +291,17 @@ sequenceDiagram
 
 O token é assinado com HMAC-SHA256 usando a chave `Jwt:Key`. Ele vale por `Jwt:ExpiracaoMinutos` minutos (120 por padrão). Emissor e público são `MyHomework.Api` e `MyHomework.Front`. A API confere a assinatura, o emissor, o público e a validade em toda requisição.
 
+### Como o frontend usa o token
+
+1. No login, o `AuthProvider` guarda a resposta da API (token, nome, e-mail e roles) no `localStorage`.
+2. Em cada chamada, o `api.ts` lê o token e manda no cabeçalho `Authorization: Bearer <token>`.
+3. Ao abrir o site, o `AuthProvider` recupera o login guardado. Se o token já venceu (campo `exp` do token), ele é descartado e a pessoa vai para o login.
+4. Se a API responder `401` numa rota protegida, o `api.ts` apaga o token e avisa o `AuthProvider`. A tela volta para o login com o aviso "Sua sessão expirou. Entre de novo.".
+5. Se a API responder `403`, a tela mostra "Você não tem permissão para fazer isso.".
+6. O botão "Sair" só apaga o token do navegador. O JWT não fica guardado na API, então não há nada para cancelar lá.
+
+As telas usam `ehAdmin` (do `useAuth()`) para esconder o que o usuário não pode fazer, como os botões de matéria. Isso é só conforto visual: quem garante a permissão é a API.
+
 ## Ciclo de vida de uma lição
 
 | Ação                         | Endpoint                 | Efeito no status                         |
@@ -293,13 +320,11 @@ O que acontece entre o clique em "Salvar" e a lição aparecer na lista:
 1. O aluno preenche o formulário (`LicaoFormPage`) e clica em Salvar.
 2. A tela chama `criarLicao(dados)`, em `api.ts`.
 3. O `api.ts` envia um `POST /api/licoes` com os dados em JSON e o token no cabeçalho `Authorization`.
-4. A API valida o token. Sem token válido, responde `401` e a lição não é criada.
+4. A API valida o token. Sem token válido, responde `401`, a lição não é criada e a tela volta para o login.
 5. O `LicoesController` confere no banco se a matéria informada existe.
 6. Se não existe, a API responde `400` com "Matéria não encontrada.", e a tela mostra essa mensagem em vermelho.
 7. Se existe, a API define o status como `Pendente`, preenche `CriadaEm`, grava a lição no MySQL e responde `200` com a lição criada.
 8. A tela volta para a lista, que busca as lições de novo e já mostra a nova.
-
-O passo 3 ainda depende do frontend passar a enviar o token.
 
 ## Endpoints da API
 
@@ -464,7 +489,7 @@ Depois suba o servidor de desenvolvimento:
 npm run dev
 ```
 
-O site fica em `http://localhost:5173`, endereço que a API já libera no CORS. Enquanto o frontend não tiver login, as listas vão aparecer vazias ou com erro, porque a API responde `401`.
+O site fica em `http://localhost:5173`, endereço que a API já libera no CORS. Ele abre na tela de login: crie uma conta em "Criar conta" ou entre com o admin configurado no User Secrets.
 
 ## Decisões do projeto
 
@@ -483,6 +508,9 @@ O site fica em `http://localhost:5173`, endereço que a API já libera no CORS. 
 | Mesma mensagem para e-mail inexistente e senha errada | não revela quais e-mails têm conta |
 | Toda conta nova é `Usuario` | ninguém consegue se cadastrar como admin; o único admin vem da configuração do servidor |
 | Claims com nomes curtos (`sub`, `name`, `role`) e `MapInboundClaims = false` | o token fica menor e o que é gravado é exatamente o que a API lê, sem conversão para nomes longos |
+| Token guardado no `localStorage` | a pessoa continua logada ao recarregar a página ou abrir outra aba; é a opção mais simples para um projeto de estudo |
+| Login no frontend com Context, sem biblioteca | o `useAuth()` resolve o que as telas precisam, no mesmo estilo do resto do projeto |
+| Depois do cadastro, o login é automático | a pessoa não precisa digitar e-mail e senha duas vezes |
 
 ## Fluxo de trabalho no Git
 
@@ -502,21 +530,12 @@ As mensagens de commit seguem o padrão [Conventional Commits](https://www.conve
 
 Melhorias planejadas, agrupadas por área.
 
-### Autenticação no frontend (prioridade)
-
-| Melhoria | Por quê |
-|----------|---------|
-| Telas de cadastro e login | sem elas, o frontend não consegue usar a API, que agora exige token |
-| Guardar o token e enviá-lo em `api.ts` | todas as chamadas precisam do cabeçalho `Authorization: Bearer` |
-| Voltar para o login quando a API responder `401` | o token vence depois de 120 minutos |
-| Botão "Sair" na barra de navegação | apagar o token guardado |
-| Esconder as ações de matéria para quem não é admin | hoje a tela mostraria os botões, e a API responderia `403` |
-
 ### Backend
 
 | Melhoria | Por quê |
 |----------|---------|
 | Ligar cada lição a um usuário | hoje todo usuário logado vê e altera as lições de todos |
+| Traduzir as mensagens de senha do Identity | hoje elas chegam em inglês na tela de cadastro ("Passwords must have at least one digit"); dá para trocar com um `IdentityErrorDescriber` em português |
 | Exigir `Nome` não vazio na matéria (`[Required]`) | hoje a API aceita uma matéria com nome em branco; só o formulário do frontend impede |
 | Validar a matéria também no `PUT` de lições | com um `materiaId` inexistente, a edição devolve erro 500 em vez de 400 |
 | Ignorar o `id` enviado no `POST` | se o cliente mandar um `id`, a criação pode falhar com chave duplicada |
@@ -558,4 +577,4 @@ Melhorias planejadas, agrupadas por área.
 | Calendário | ver as entregas organizadas por dia |
 | Anexos | guardar uma foto ou arquivo junto com a lição |
 
-A ordem sugerida é: primeiro o login no frontend, para o site voltar a funcionar; depois ligar as lições aos usuários e as correções da API; em seguida as melhorias de tela, testes e CI; então Docker e publicação; e por último as novas funcionalidades.
+A ordem sugerida é: primeiro ligar as lições aos usuários e as correções da API; em seguida as melhorias de tela, testes e CI; então Docker e publicação; e por último as novas funcionalidades.
