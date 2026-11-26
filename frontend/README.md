@@ -1,4 +1,4 @@
-# MyHomework — Frontend
+# Lição Em Dia — Frontend
 
 Interface em **React 19 + TypeScript**, criada com **Vite**. Consome a API do backend, com login por token JWT. Não usa biblioteca de componentes nem de estado: só React, React Router, `fetch` nativo e CSS puro.
 
